@@ -1,0 +1,19 @@
+{
+  "name": "noor-muslim-companion",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Noor — All-in-One Muslim Companion Super-App. Lightweight vanilla JS, mobile-first.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "firebase": "^12.17.0"
+  }
+}

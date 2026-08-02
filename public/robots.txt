@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# The app is a single-page PWA — everything lives on the root path
+Sitemap: https://noor-muslim-83cb7.web.app/sitemap.xml

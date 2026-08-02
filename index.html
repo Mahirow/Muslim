@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+    <meta name="theme-color" content="#064e3b" />
+    <meta name="description" content="Noor — your all-in-one Muslim companion. Read the Quran with audio & tafsir, practice Hifz, prayer times & Qibla, adhkar, digital tasbih, hadith library, 99 Names of Allah, zakat calculator and more — works offline." />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Noor" />
+    <link rel="canonical" href="https://noor-muslim-83cb7.web.app/" />
+
+    <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Noor — Muslim Companion" />
+    <meta property="og:title" content="Noor — All-in-One Muslim Companion App" />
+    <meta property="og:description" content="Quran with audio & tafsir, Hifz practice, prayer times & Qibla, adhkar, tasbih, hadith, 99 Names of Allah, zakat & more — free, offline-first, mobile-friendly." />
+    <meta property="og:url" content="https://noor-muslim-83cb7.web.app/" />
+    <meta property="og:image" content="https://noor-muslim-83cb7.web.app/icons/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Noor — All-in-One Muslim Companion App" />
+    <meta name="twitter:description" content="Quran, Hifz, prayer times, Qibla, adhkar, tasbih, hadith, 99 Names of Allah, zakat & more — free and offline-first." />
+    <meta name="twitter:image" content="https://noor-muslim-83cb7.web.app/icons/og-cover.png" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Noor" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>Noor — All-in-One Muslim Companion App</title>
+
+    <!-- Structured data: Schema.org WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Noor — Muslim Companion",
+      "url": "https://noor-muslim-83cb7.web.app/",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "description": "All-in-one Muslim companion: Quran with audio & tafsir, Hifz practice with voice testing, prayer times & Qibla, adhkar, digital tasbih, hadith library, 99 Names of Allah, duas, zakat calculator, Islamic finance, baby names and Ramadan calendar. Works offline as a PWA.",
+      "featureList": "Quran reading & listening, Hifz voice tester, prayer times & Qibla compass, adhkar checklist, tasbih counter, hadith library, 99 Names of Allah, duas, zakat calculator, sadaqah tracker, inheritance estimator, baby names, halal E-number checker, dark mode, offline PWA, cloud account backup",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "screenshot": "https://noor-muslim-83cb7.web.app/icons/icon-512.png"
+    }
+    </script>
+    <style>
+      /* ============================================================
+         CRITICAL INLINE CSS — styled first paint while the app loads.
+         Literal colors only (the real stylesheet adds themes later).
+         ============================================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: #08352a radial-gradient(1200px 700px at 80% -10%, rgba(217, 119, 6, 0.14), transparent 60%),
+                    radial-gradient(900px 600px at -10% 110%, rgba(16, 185, 129, 0.16), transparent 55%);
+        background-attachment: fixed;
+        color: #1c1917;
+        line-height: 1.55;
+        min-height: 100dvh;
+      }
+      html[data-theme="dark"] body {
+        background: #02140f radial-gradient(1200px 700px at 80% -10%, rgba(217, 119, 6, 0.12), transparent 60%),
+                    radial-gradient(900px 600px at -10% 110%, rgba(16, 185, 129, 0.12), transparent 55%);
+        color: #e7e5e4;
+      }
+      #app {
+        position: relative;
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100dvh;
+        background: #f4fbf7;
+        box-shadow: 0 0 60px rgba(2, 44, 34, 0.45);
+        overflow: hidden;
+      }
+      html[data-theme="dark"] #app { background: #05231b; box-shadow: 0 0 60px rgba(0, 0, 0, 0.6); }
+      .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: linear-gradient(160deg, #065f46, #064e3b 60%, #022c22);
+        color: #fff;
+        padding: calc(10px + env(safe-area-inset-top)) 18px 0;
+        box-shadow: 0 6px 20px -8px rgba(2, 44, 34, 0.6);
+      }
+      .header-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+      .brand-logo {
+        display: grid; place-items: center;
+        width: 42px; height: 42px; border-radius: 14px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+        border: 1px solid rgba(251, 191, 36, 0.4);
+        color: #fbbf24;
+        flex: none;
+      }
+      .brand-name { font-size: 1.28rem; font-weight: 800; letter-spacing: 0.2px; line-height: 1.1; color: #fff; }
+      .brand-ar { color: #fbbf24; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; font-weight: 700; }
+      .brand-tag { font-size: 0.68rem; color: #a7f3d0; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+      .header-right { display: flex; align-items: center; gap: 8px; flex: none; }
+      .acct-btn {
+        position: relative;
+        width: 38px; height: 38px; border-radius: 50%;
+        border: 1.5px solid rgba(251, 191, 36, 0.35);
+        background: rgba(255, 255, 255, 0.12);
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; flex: none; color: #fde68a;
+      }
+      .acct-initial { font-size: 0.92rem; font-weight: 700; line-height: 1; }
+      .acct-dot {
+        position: absolute; right: -1px; bottom: -1px;
+        width: 11px; height: 11px; border-radius: 50%;
+        background: #78716c; border: 2px solid #f4fbf7;
+      }
+      .acct-dot.on { background: #10b981; }
+      .theme-btn {
+        flex: none;
+        width: 38px; height: 38px; border-radius: 12px;
+        display: grid; place-items: center;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        color: #fde68a; cursor: pointer;
+      }
+      .theme-btn .ico-sun { display: none; }
+      html[data-theme="dark"] .theme-btn .ico-sun { display: block; }
+      html[data-theme="dark"] .theme-btn .ico-moon { display: none; }
+      .hijri-chip {
+        font-size: 0.7rem;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(251, 191, 36, 0.35);
+        color: #fde68a;
+        padding: 5px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+        max-width: 46%;
+        overflow: hidden; text-overflow: ellipsis;
+      }
+      .bismillah {
+        margin-top: 10px; text-align: center;
+        font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif;
+        font-size: 1.16rem; color: #fde68a;
+        padding: 9px 0 11px; letter-spacing: 0.02em;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      #content { padding: 14px 14px calc(66px + 30px + env(safe-area-inset-bottom)); }
+      .bottom-nav {
+        position: fixed;
+        bottom: 0; left: 50%; transform: translateX(-50%);
+        width: 100%; max-width: 480px; z-index: 60;
+        display: flex;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid #e7e5e4;
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -8px 24px -12px rgba(2, 44, 34, 0.25);
+      }
+      html[data-theme="dark"] .bottom-nav { background: rgba(8, 40, 31, 0.96); border-top-color: #164a39; }
+      .nav-btn {
+        flex: 1;
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        padding: 9px 2px 8px;
+        background: none; border: none; cursor: pointer;
+        color: #78716c; font-family: inherit;
+      }
+      html[data-theme="dark"] .nav-btn { color: #93a89d; }
+      .nav-icon { display: grid; place-items: center; width: 46px; height: 30px; border-radius: 999px; }
+      .nav-label { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.02em; }
+      .nav-btn.active { color: #022c22; }
+      .nav-btn.active .nav-icon { background: #fef3c7; color: #b45309; }
+      .nav-btn.active .nav-label { color: #064e3b; font-weight: 700; }
+      html[data-theme="dark"] .nav-btn.active { color: #d1fae5; }
+      html[data-theme="dark"] .nav-btn.active .nav-icon { background: rgba(245, 158, 11, 0.14); color: #fbbf24; }
+      html[data-theme="dark"] .nav-btn.active .nav-label { color: #7dd3a8; }
+
+      /* ---- boot splash ---- */
+      .boot-splash {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        padding: 70px 24px 40px;
+        text-align: center;
+      }
+      .boot-logo {
+        width: 84px; height: 84px;
+        border-radius: 50%;
+        background: linear-gradient(160deg, #065f46, #064e3b 60%, #022c22);
+        display: grid; place-items: center;
+        color: #ffd27a;
+        box-shadow: 0 14px 34px -12px rgba(6, 78, 59, 0.65);
+        animation: bootPulse 1.6s ease-in-out infinite;
+      }
+      @keyframes bootPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+      }
+      .boot-name { font-size: 1.5rem; font-weight: 800; color: #064e3b; }
+      html[data-theme="dark"] .boot-name { color: #e7e5e4; }
+      .boot-name span { color: #b45309; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; }
+      .boot-bar {
+        width: 150px; height: 4px;
+        border-radius: 999px;
+        background: rgba(16, 185, 129, 0.18);
+        overflow: hidden;
+      }
+      .boot-bar i {
+        display: block; height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #10b981, #d97706);
+        animation: bootSlide 1.1s ease-in-out infinite;
+      }
+      @keyframes bootSlide {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(280%); }
+      }
+      .boot-sub { font-size: 0.78rem; color: #78716c; letter-spacing: 0.04em; }
+      html[data-theme="dark"] .boot-sub { color: #93a89d; }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+    </style>
+    <script>
+      // Apply saved theme before first paint to avoid a flash of the wrong theme
+      (function () {
+        try {
+          var t = JSON.parse(localStorage.getItem('noor.theme'));
+          if (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+          if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        } catch (e) { /* noop */ }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="header-top">
+          <div class="brand">
+            <span class="brand-logo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12a10 10 0 1 0 20 0A10 10 0 0 0 2 12z" opacity="0" />
+                <path d="M12 21a9 9 0 1 1 6.4-15.3" />
+                <path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none" />
+                <path d="M4 20.5 20 3.5" stroke-dasharray="2 3" />
+              </svg>
+            </span>
+            <div class="brand-text">
+              <h1 class="brand-name">Noor <span class="brand-ar">نور</span></h1>
+              <p class="brand-tag">Muslim Companion</p>
+            </div>
+          </div>
+          <div class="header-right">
+            <button class="acct-btn" id="acctBtn" aria-label="Account and cloud backup">
+              <span class="acct-initial" id="acctInitial">☪</span>
+              <span class="acct-dot" id="acctDot"></span>
+            </button>
+            <button class="theme-btn" id="themeToggle" aria-label="Toggle dark mode">
+              <svg class="ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+              <svg class="ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3 17 7M7 17l-1.7 1.7"/></svg>
+            </button>
+            <span class="hijri-chip" id="hijriDate" title="Today's Islamic date">…</span>
+          </div>
+        </div>
+        <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      </header>
+
+      <main id="content">
+        <div class="boot-splash" id="bootSplash">
+          <div class="boot-logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21a9 9 0 1 1 6.4-15.3" />
+              <path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <div class="boot-name">Noor <span>نور</span></div>
+          <div class="boot-bar"><i></i></div>
+          <div class="boot-sub">Preparing your companion…</div>
+        </div>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button class="nav-btn" data-tab="home" aria-label="Home">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 10.5 12 3l9 7.5" />
+              <path d="M5 9.5V21h5v-6h4v6h5V9.5" />
+            </svg>
+          </span>
+          <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-btn" data-tab="quran" aria-label="Quran">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 6c-2-1.6-4.5-2.2-7-2.2v15c2.5 0 5 .6 7 2.2 2-1.6 4.5-2.2 7-2.2v-15c-2.5 0-5 .6-7 2.2z" />
+              <path d="M12 6v15" />
+            </svg>
+          </span>
+          <span class="nav-label">Quran</span>
+        </button>
+        <button class="nav-btn" data-tab="prayer" aria-label="Prayer">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="m15.5 8.5-1.6 4.4-4.4 1.6 1.6-4.4z" />
+            </svg>
+          </span>
+          <span class="nav-label">Prayer</span>
+        </button>
+        <button class="nav-btn" data-tab="finance" aria-label="Finance">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="6" width="19" height="13" rx="2.5" />
+              <path d="M2.5 10.5h19" />
+              <circle cx="16.5" cy="14.8" r="1.3" fill="currentColor" stroke="none" />
+              <path d="M6.5 15h2.5" />
+            </svg>
+          </span>
+          <span class="nav-label">Finance</span>
+        </button>
+        <button class="nav-btn" data-tab="education" aria-label="Learn">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 9.5 12 4.5l9.5 5L12 14.5z" />
+              <path d="M6.5 11.8v4.5c0 1.4 2.5 3 5.5 3s5.5-1.6 5.5-3v-4.5" />
+              <path d="M21.5 9.5v5" />
+            </svg>
+          </span>
+          <span class="nav-label">Learn</span>
+        </button>
+      </nav>
+      <button class="ai-fab" id="aiFab" aria-label="Chat with Noor AI">
+        <span class="ai-fab-pulse"></span>
+        <svg class="ai-fab-ico" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z"/></svg>
+        <svg class="ai-fab-x" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+    <noscript>
+      <div style="padding:30px 20px;font-family:system-ui,sans-serif;text-align:center;color:#064e3b;background:#ecfdf5;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+        <h1 style="font-size:1.5rem;margin:0">Noor — Muslim Companion</h1>
+        <p style="max-width:420px;color:#44403c">Quran with audio & tafsir, prayer times & Qibla, adhkar, tasbih, hadith, 99 Names of Allah, zakat and more.</p>
+        <p style="font-size:0.85rem;color:#78716c">Please enable JavaScript to use the app.</p>
+      </div>
+    </noscript>
+  </body>
+</html>
