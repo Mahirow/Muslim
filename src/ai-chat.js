@@ -42,7 +42,7 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 function getUsage() {
-  const u = store.get(USAGE_KEY, { day: todayStr(), calls: [], daily: 0 });
+  const u = store.get(USAGE_KEY, { day: todayStr(), calls: [], daily: 0, quotaAt: 0 });
   if (u.day !== todayStr()) {
     u.day = todayStr();
     u.calls = [];
@@ -69,6 +69,12 @@ function checkLimit() {
   }
   if (inDay >= RPD_LIMIT) {
     return { allow: false, msg: `You've reached the free-tier daily limit of ${RPD_LIMIT} requests. It resets at midnight — or upgrade your Gemini plan.` };
+  }
+  if (now - (u.quotaAt || 0) < 60000) {
+    return {
+      allow: false,
+      msg: "Google's free-tier limit was just reached. Wait about a minute and try again — or upgrade your Gemini plan for higher limits.",
+    };
   }
   if (inMinute >= Math.round(RPM_LIMIT * WARN_PCT)) {
     return { allow: true, msg: `Heads up: you've made ${inMinute} requests in the last minute (free tier allows ${RPM_LIMIT}/min).` };
@@ -250,14 +256,22 @@ async function callGemini(contents) {
     tools: [...FUNC_TOOLS, { googleSearch: {} }],
     generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
   };
-  const res = await fetch(`${API_BASE}/models/${MODEL}:generateContent?key=${API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/models/${MODEL}:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    throw new Error('NET');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = (err.error && err.error.message) || 'HTTP ' + res.status;
+    if (res.status === 429 || /quota|rate limit|RESOURCE_EXHAUSTED|exceeded/i.test(msg)) {
+      throw new Error('QUOTA');
+    }
     if (/API key|API_KEY|permission|denied/i.test(msg)) {
       throw new Error('AUTH');
     }
@@ -536,12 +550,21 @@ async function send() {
     vibrate(8);
   } catch (e) {
     typing.remove();
+    if (e.message === 'QUOTA') {
+      const u = getUsage();
+      u.quotaAt = Date.now();
+      store.set(USAGE_KEY, u);
+    }
     const hint =
       e.message === 'AUTH'
         ? 'The Gemini API key seems invalid. Check **VITE_GEMINI_API_KEY** in the project Keys tab.'
         : e.message === 'MODEL'
           ? 'The AI model name is unavailable — check VITE_GEMINI_MODEL.'
-          : 'I could not reach the AI right now. Check your connection and try again.';
+          : e.message === 'QUOTA'
+            ? "Google's free-tier limit is momentarily reached. Wait about a minute and try again — or upgrade your Gemini plan for higher limits."
+            : e.message === 'NET'
+              ? 'Could not connect to the AI service. Check your internet connection and try again.'
+              : 'I could not reach the AI right now. Check your connection and try again.';
     appendMsg({ role: 'bot', text: hint });
   } finally {
     busy = false;
