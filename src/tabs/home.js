@@ -477,90 +477,172 @@ function drawQuoteCard(ar, en, ref) {
   const GOLD_SOFT = '#f0b75e';
   const CREAM = '#f7f1e3';
 
-  // background — emerald radial
-  const bg = x.createRadialGradient(W / 2, 320, 120, W / 2, H / 2, 860);
-  bg.addColorStop(0, '#0a5c44');
-  bg.addColorStop(0.55, EMERALD);
-  bg.addColorStop(1, '#043328');
+  // ---- layered background: deep emerald + gold & mint ambient glows (mirrors the app shell) ----
+  const bg = x.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0b5c45');
+  bg.addColorStop(0.5, EMERALD);
+  bg.addColorStop(1, '#033327');
   x.fillStyle = bg;
   x.fillRect(0, 0, W, H);
 
+  // ambient glows
+  const goldGlow = x.createRadialGradient(W * 0.86, -60, 10, W * 0.86, -60, 560);
+  goldGlow.addColorStop(0, 'rgba(251,191,36,0.30)');
+  goldGlow.addColorStop(1, 'rgba(251,191,36,0)');
+  x.fillStyle = goldGlow;
+  x.fillRect(0, 0, W, H);
+
+  const mintGlow = x.createRadialGradient(-40, H + 60, 10, -40, H + 60, 620);
+  mintGlow.addColorStop(0, 'rgba(110,231,183,0.22)');
+  mintGlow.addColorStop(1, 'rgba(110,231,183,0)');
+  x.fillStyle = mintGlow;
+  x.fillRect(0, 0, W, H);
+
   // faint sparkle texture
-  x.fillStyle = 'rgba(255,255,255,0.05)';
-  [[160, 260], [925, 470], [150, 900], [940, 1060], [320, 1215], [800, 140], [510, 66], [60, 560]].forEach(([sx, sy]) => drawSparkle(x, sx, sy, 10));
+  x.fillStyle = 'rgba(255,255,255,0.06)';
+  [[160, 260], [925, 470], [150, 900], [940, 1060], [320, 1215], [800, 140], [510, 66], [60, 560], [990, 700], [90, 1180]].forEach(([sx, sy]) => drawSparkle(x, sx, sy, 9));
 
-  // gold frame
-  x.strokeStyle = 'rgba(240,183,94,0.9)';
-  x.lineWidth = 3;
-  x.strokeRect(36, 36, W - 72, H - 72);
-  x.strokeStyle = 'rgba(240,183,94,0.4)';
-  x.lineWidth = 1.5;
-  x.strokeRect(54, 54, W - 108, H - 108);
+  // soft gold frame with outer glow
+  x.shadowColor = 'rgba(2,44,34,0.8)';
+  x.shadowBlur = 30;
+  x.strokeStyle = 'rgba(240,183,94,0.55)';
+  x.lineWidth = 2;
+  x.strokeRect(40, 40, W - 80, H - 80);
+  x.shadowBlur = 0;
+  x.strokeStyle = 'rgba(240,183,94,0.25)';
+  x.lineWidth = 1;
+  x.strokeRect(58, 58, W - 116, H - 116);
   x.fillStyle = GOLD_SOFT;
-  [[36, 36], [W - 36, 36], [36, H - 36], [W - 36, H - 36]].forEach(([cx, cy]) => drawDiamond(x, cx, cy, 11));
+  [[40, 40], [W - 40, 40], [40, H - 40], [W - 40, H - 40]].forEach(([cx, cy]) => drawDiamond(x, cx, cy, 10));
 
-  // crescent + star
+  // ---- gold-gradient emblem (crescent + star) with soft glow ----
+  const goldGrad = x.createLinearGradient(W / 2 - 90, 120, W / 2 + 130, 320);
+  goldGrad.addColorStop(0, '#fde68a');
+  goldGrad.addColorStop(0.55, '#fbbf24');
+  goldGrad.addColorStop(1, '#d97706');
+
   const mx = 470;
-  const my = 228;
-  const mr = 52;
-  x.fillStyle = GOLD_SOFT;
+  const my = 230;
+  const mr = 54;
+  x.shadowColor = 'rgba(251,191,36,0.55)';
+  x.shadowBlur = 46;
+  x.fillStyle = goldGrad;
   x.beginPath();
   x.arc(mx, my, mr, 0, Math.PI * 2);
   x.fill();
   x.globalCompositeOperation = 'destination-out';
   x.beginPath();
-  x.arc(mx + 24, my - 16, mr - 13, 0, Math.PI * 2);
+  x.arc(mx + 26, my - 17, mr - 14, 0, Math.PI * 2);
   x.fill();
   x.globalCompositeOperation = 'source-over';
   x.fillStyle = '#0a5c44';
   x.beginPath();
-  x.arc(mx + 24, my - 16, mr - 13, 0, Math.PI * 2);
+  x.arc(mx + 26, my - 17, mr - 14, 0, Math.PI * 2);
   x.fill();
-  drawStar(x, 596, 198, 30, GOLD_SOFT);
+  x.shadowBlur = 0;
+  drawStar(x, 602, 198, 30, '#fde68a');
 
-  // wordmark
+  // wordmark (gold gradient)
   x.textAlign = 'center';
   x.textBaseline = 'middle';
-  x.fillStyle = GOLD_SOFT;
-  x.font = '600 46px "Segoe UI", system-ui, sans-serif';
-  x.fillText('N O O R', W / 2, 332);
+  x.fillStyle = goldGrad;
+  x.font = '700 48px "Segoe UI", system-ui, sans-serif';
+  x.fillText('N O O R', W / 2, 336);
 
   // divider under wordmark
-  x.strokeStyle = 'rgba(240,183,94,0.55)';
+  x.strokeStyle = 'rgba(240,183,94,0.6)';
   x.lineWidth = 2;
   x.beginPath();
-  x.moveTo(W / 2 - 150, 374);
-  x.lineTo(W / 2 - 26, 374);
+  x.moveTo(W / 2 - 150, 380);
+  x.lineTo(W / 2 - 26, 380);
   x.stroke();
   x.beginPath();
-  x.moveTo(W / 2 + 26, 374);
-  x.lineTo(W / 2 + 150, 374);
+  x.moveTo(W / 2 + 26, 380);
+  x.lineTo(W / 2 + 150, 380);
   x.stroke();
-  drawDiamond(x, W / 2, 374, 7);
+  drawDiamond(x, W / 2, 380, 7);
 
-  let y = 476;
+  // ================= frosted glass panel =================
+  const panel = { x: 70, y: 440, w: W - 140, h: H - 440 - 150 };
+  const radius = 42;
+
+  // capture current art, blur it, and clip to the panel => frosted glass
+  const off = document.createElement('canvas');
+  off.width = W;
+  off.height = H;
+  const o = off.getContext('2d');
+  o.drawImage(c, 0, 0);
+
+  const rr = (px, py, pw, ph, pr) => {
+    const p = new Path2D();
+    p.moveTo(px + pr, py);
+    p.arcTo(px + pw, py, px + pw, py + ph, pr);
+    p.arcTo(px + pw, py + ph, px, py + ph, pr);
+    p.arcTo(px, py + ph, px, py, pr);
+    p.arcTo(px, py, px + pw, py, pr);
+    p.closePath();
+    return p;
+  };
+  const panelPath = rr(panel.x, panel.y, panel.w, panel.h, radius);
+
+  // frosted backdrop: blurred copy of the art behind the glass
+  if (x.filter && typeof x.filter === 'string') {
+    try {
+      x.save();
+      x.filter = 'blur(22px) saturate(1.5)';
+      x.clip(panelPath);
+      x.drawImage(off, 0, 0);
+      x.restore();
+    } catch (e) { /* older engines: fall through to tint-only glass */ }
+  } else {
+    x.fillStyle = 'rgba(255,255,255,0.10)';
+    x.fill(panelPath);
+  }
+
+  // glass tint gradient
+  const tint = x.createLinearGradient(0, panel.y, 0, panel.y + panel.h);
+  tint.addColorStop(0, 'rgba(255,255,255,0.16)');
+  tint.addColorStop(0.4, 'rgba(255,255,255,0.07)');
+  tint.addColorStop(1, 'rgba(255,255,255,0.12)');
+  x.fillStyle = tint;
+  x.fill(panelPath);
+
+  // glass border + top highlight
+  x.strokeStyle = 'rgba(255,255,255,0.30)';
+  x.lineWidth = 2.5;
+  x.stroke(panelPath);
+  x.save();
+  x.clip(panelPath);
+  x.fillStyle = 'rgba(255,255,255,0.12)';
+  x.beginPath();
+  x.ellipse(W / 2, panel.y + 14, panel.w * 0.6, 26, 0, 0, Math.PI * 2);
+  x.fill();
+  x.restore();
+
+  // ================= content inside the glass =================
+  let y = panel.y + 58;
   x.textBaseline = 'top';
 
   // Arabic (right-aligned)
   if (ar) {
-    let size = 58;
+    let size = 54;
     let lines = [];
     for (let pass = 0; pass < 3; pass++) {
       x.font = size + 'px "Noto Naskh Arabic","Amiri","Scheherazade New","Traditional Arabic",serif';
-      lines = wrapCtxText(x, ar, 880);
-      if (lines.length <= 5 || size <= 36) break;
+      lines = wrapCtxText(x, ar, panel.w - 110);
+      if (lines.length <= 5 || size <= 34) break;
       size -= 7;
     }
     x.fillStyle = CREAM;
     x.textAlign = 'right';
     const lh = Math.round(size * 1.6);
     for (const line of lines) {
-      x.fillText(line, W - 100, y);
+      x.fillText(line, panel.x + panel.w - 55, y);
       y += lh;
     }
     // ornament under arabic
-    y += 10;
-    x.strokeStyle = 'rgba(240,183,94,0.5)';
+    y += 8;
+    x.strokeStyle = 'rgba(240,183,94,0.6)';
     x.lineWidth = 2;
     x.beginPath();
     x.moveTo(W / 2 - 140, y);
@@ -571,60 +653,71 @@ function drawQuoteCard(ar, en, ref) {
     x.lineTo(W / 2 + 140, y);
     x.stroke();
     drawDiamond(x, W / 2, y, 7);
-    y += 64;
+    y += 62;
   }
 
   // English (centered, elegant)
   if (en) {
     const plain = String(en).replace(/^[“”"']+|[“”"']+$/g, '');
-    let size = 44;
+    let size = 42;
     let lines = [];
     for (let pass = 0; pass < 3; pass++) {
       x.font = 'italic ' + size + 'px Georgia, "Times New Roman", serif';
-      lines = wrapCtxText(x, plain, 860);
-      if (lines.length <= 5 || size <= 30) break;
+      lines = wrapCtxText(x, plain, panel.w - 120);
+      if (lines.length <= 5 || size <= 28) break;
       size -= 5;
     }
     const lh = Math.round(size * 1.5);
     // decorative opening quote
     x.fillStyle = GOLD_SOFT;
-    x.font = 'italic 84px Georgia, serif';
+    x.font = 'italic 80px Georgia, serif';
     x.textAlign = 'center';
-    x.fillText('\u201C', W / 2, y - lh * 0.35);
+    x.fillText('\u201C', W / 2, y - lh * 0.3);
     x.fillStyle = CREAM;
     x.font = 'italic ' + size + 'px Georgia, "Times New Roman", serif';
     for (const line of lines) {
       x.fillText(line, W / 2, y);
       y += lh;
     }
-    y += 30;
+    y += 32;
   }
 
-  // reference
+  // reference — frosted gold pill
   if (ref) {
-    const refY = Math.min(Math.max(y, 1080), 1200);
-    x.fillStyle = GOLD_SOFT;
-    x.font = '500 34px "Segoe UI", system-ui, sans-serif';
-    x.textAlign = 'center';
-    x.fillText(ref, W / 2, refY);
+    x.font = '600 30px "Segoe UI", system-ui, sans-serif';
+    const tw = x.measureText(ref).width;
+    const pillW = Math.min(tw + 64, panel.w - 40);
+    const pillH = 56;
+    const pillY = Math.min(Math.max(y, panel.y + panel.h - 110), panel.y + panel.h - 72);
+    const pillX = (W - pillW) / 2;
+    const pillPath = rr(pillX, pillY, pillW, pillH, pillH / 2);
+    x.fillStyle = 'rgba(251,191,36,0.18)';
+    x.fill(pillPath);
+    x.strokeStyle = 'rgba(251,191,36,0.6)';
+    x.lineWidth = 2;
+    x.stroke(pillPath);
+    x.fillStyle = '#fde68a';
+    x.textBaseline = 'middle';
+    x.fillText(ref, W / 2, pillY + pillH / 2);
+    x.textBaseline = 'top';
   }
 
   // footer ornament + watermark
-  x.strokeStyle = 'rgba(240,183,94,0.4)';
+  x.strokeStyle = 'rgba(240,183,94,0.5)';
   x.lineWidth = 1.5;
   x.beginPath();
-  x.moveTo(W / 2 - 90, H - 150);
-  x.lineTo(W / 2 - 18, H - 150);
+  x.moveTo(W / 2 - 90, H - 92);
+  x.lineTo(W / 2 - 18, H - 92);
   x.stroke();
   x.beginPath();
-  x.moveTo(W / 2 + 18, H - 150);
-  x.lineTo(W / 2 + 90, H - 150);
+  x.moveTo(W / 2 + 18, H - 92);
+  x.lineTo(W / 2 + 90, H - 92);
   x.stroke();
-  drawDiamond(x, W / 2, H - 150, 5);
-  x.fillStyle = 'rgba(247,241,227,0.55)';
-  x.font = '500 27px "Segoe UI", system-ui, sans-serif';
+  drawDiamond(x, W / 2, H - 92, 5);
+  x.fillStyle = 'rgba(247,241,227,0.6)';
+  x.font = '600 26px "Segoe UI", system-ui, sans-serif';
   x.textAlign = 'center';
-  x.fillText('Noor \u00B7 Muslim Companion', W / 2, H - 92);
+  x.fillText('Noor \u00B7 Muslim Companion', W / 2, H - 58);
 
   return c;
 }
