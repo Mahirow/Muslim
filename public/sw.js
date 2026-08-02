@@ -3,7 +3,7 @@
    Cache-first for static assets, network-first for navigation,
    so the app shell works fully offline after first visit.
    ============================================================ */
-const CACHE = 'noor-v3';
+const CACHE = 'noor-v4';
 const PRECACHE = [
   '/',
   '/index.html',

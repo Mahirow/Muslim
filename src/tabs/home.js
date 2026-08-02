@@ -1,8 +1,8 @@
 // ============================================================
 //  TAB 1 — HOME: Daily basics, habits & spiritual tools
 // ============================================================
-import { store, vibrate, toast, successSound, playTone, dayOfYear, esc, trackDay, lastNDays } from '../lib.js';
-import { promptInstall } from '../main.js';
+import { store, vibrate, toast, successSound, playTone, dayOfYear, esc, trackDay, lastNDays, hijriToday, gregorianToday } from '../lib.js';
+import { promptInstall, switchTab } from '../main.js';
 import { DAILY_QUOTES, ADHKAR_MORNING, ADHKAR_EVENING, SUNNAH_HABITS, EMOTION_REMEDIES, DHIKR_LIST } from '../data.js';
 import { randomAyah, randomHadith } from '../ummah-api.js';
 
@@ -28,6 +28,27 @@ let emotions = {};
 
 export function mount(el) {
   el.innerHTML = `
+    <div class="hero" data-view="today">
+      <div class="hero-top">
+        <span class="hero-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <div class="hero-brand">
+          <h2 class="hero-title">Noor <span>نور</span></h2>
+          <p class="hero-tag">Your Private, Ad-Free Islamic Companion</p>
+        </div>
+      </div>
+      <p class="hero-sub">Track morning &amp; evening Adhkar, build Sunnah habits, and elevate your spiritual life — offline, completely private, zero ads.</p>
+      <div class="hero-cta">
+        <button class="btn btn-gold" id="heroInstall">📲 Install App</button>
+        <button class="btn btn-ghost" id="heroExplore">⬇ Explore Features</button>
+      </div>
+      <div class="hero-meta">
+        <span class="hero-date">☪ <span id="heroHijri"></span></span>
+        <span class="hero-privacy">🔒 100% private · 🚫 no ads</span>
+      </div>
+    </div>
+
     <div class="seg seg-scroll">
       <button class="seg-btn active" data-view="today">☀️ Today</button>
       <button class="seg-btn" data-view="adhkar">📿 Adhkar</button>
@@ -55,6 +76,52 @@ export function mount(el) {
         <button class="quote-extra-btn" id="qRandomAyah">🎲 Random Ayah</button>
         <button class="quote-extra-btn" id="qRandomHadith">📜 Random Hadith</button>
         <button class="quote-extra-btn" id="qShare" title="Download the card as a shareable image">🖼️ Share as image</button>
+      </div>
+    </div>
+
+    <div class="card" id="featuresCard" data-view="today">
+      <div class="card-head">
+        <span class="card-ico gold">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>
+        </span>
+        <div><div class="card-title">What's Inside Noor</div><div class="card-sub">Tap any tile to jump straight into it</div></div>
+      </div>
+      <div class="feature-grid">
+        <button class="feature-tile" data-tab="quran">
+          <span class="ft-ico">📖</span>
+          <b>Quran &amp; Hifz</b>
+          <span>114 surahs · audio · tafsir · voice hifz tester</span>
+        </button>
+        <button class="feature-tile" data-tab="prayer">
+          <span class="ft-ico">🕌</span>
+          <b>Prayer &amp; Mosque</b>
+          <span>Auto times · Qibla compass · nearby mosques</span>
+        </button>
+        <button class="feature-tile" data-tab="finance">
+          <span class="ft-ico">💰</span>
+          <b>Finance &amp; Zakat</b>
+          <span>Zakat · sadaqah · inheritance · halal check</span>
+        </button>
+        <button class="feature-tile" data-tab="education">
+          <span class="ft-ico">📚</span>
+          <b>Learn &amp; Duas</b>
+          <span>Hadith · 99 Names · duas · events · more</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card trust-card" data-view="today">
+      <div class="card-head">
+        <span class="card-ico gold">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        </span>
+        <div><div class="card-title">Authentic &amp; Transparent</div><div class="card-sub">Where every word comes from — and what we do with your data</div></div>
+      </div>
+      <div class="trust-list">
+        <div class="trust-item"><b>📖 Qur'an text &amp; audio</b><span>Official public APIs — Quran.com &amp; AlQuran.Cloud. Every ayah shows its surah:ayah reference.</span></div>
+        <div class="trust-item"><b>📜 Hadith</b><span>Graded collections — Bukhari, Muslim, Abu Dawud, Tirmidhi, Ibn Majah &amp; more. Source and grade shown on every hadith.</span></div>
+        <div class="trust-item"><b>🕌 Prayer times</b><span>Standard calculation methods (MWL, ISNA, Egypt, Makkah…) — you pick your locality's method.</span></div>
+        <div class="trust-item"><b>🔒 Your privacy</b><span>No account needed. Everything stays on your device — cloud backup only if you sign in.</span></div>
       </div>
     </div>
 
@@ -140,13 +207,13 @@ export function mount(el) {
         <span class="card-ico">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         </span>
-        <div><div class="card-title">Install Noor</div><div class="card-sub">Add to your home screen — opens like a real app, works offline</div></div>
+        <div><div class="card-title">Install Noor</div><div class="card-sub">Get instant access — free, private &amp; works completely offline</div></div>
       </div>
       <div id="installBody"></div>
     </div>
 
     <div class="footer-note" data-view="today">
-      All your progress is saved locally on this device.<br/>May Allah accept every deed. <b>آمين</b>
+      🔒 100% private — your progress stays on this device. No ads, no tracking.<br/>May Allah accept every deed. <b>آمين</b>
     </div>
   `;
 
@@ -158,6 +225,27 @@ export function mount(el) {
   el.querySelector('#qRandomHadith').addEventListener('click', () => showRandomHadith(el));
   el.querySelector('#qShare').addEventListener('click', shareQuoteCard);
   el.querySelector('#qShareHead').addEventListener('click', shareQuoteCard);
+
+  // ---- hero CTA ----
+  const heroHijri = el.querySelector('#heroHijri');
+  if (heroHijri) heroHijri.textContent = hijriToday() || gregorianToday();
+  el.querySelector('#heroInstall').addEventListener('click', async () => {
+    if (window.noorInstallable === true) {
+      const ok = await promptInstall();
+      if (!ok) toast('Install prompt not available on this browser yet — try Chrome or Edge', 'info');
+      return;
+    }
+    const card = el.querySelector('#installCard');
+    if (card && !card.hidden) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else toast('Tap the browser menu ⋮ → “Add to Home Screen”', 'info');
+  });
+  el.querySelector('#heroExplore').addEventListener('click', () => {
+    const f = el.querySelector('#featuresCard');
+    if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  el.querySelectorAll('.feature-tile').forEach((t) =>
+    t.addEventListener('click', () => switchTab(t.dataset.tab))
+  );
 
   // ---- adhkar ----
   el.querySelector('#adhM').addEventListener('click', () => setAdhView('m', el));
@@ -238,7 +326,7 @@ export function mount(el) {
 
   // ---- segment tabs (Today / Adhkar / Tasbih / Habits / Remedy / Week) ----
   const showGroup = (view) => {
-    el.querySelectorAll('.card[data-view]').forEach((c) => {
+    el.querySelectorAll('.card[data-view], .hero[data-view]').forEach((c) => {
       c.hidden = c.dataset.view !== view;
     });
     el.querySelectorAll('.footer-note[data-view]').forEach((f) => {
@@ -266,16 +354,19 @@ function renderInstallCard(el) {
   const standalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
+  const heroInstall = el.querySelector('#heroInstall');
   if (standalone) {
     card.hidden = true;
+    if (heroInstall) heroInstall.hidden = true;
     return;
   }
   card.hidden = false;
+  if (heroInstall) heroInstall.hidden = false;
   const body = el.querySelector('#installBody');
   if (isIOS) {
     body.innerHTML = `
       <div class="remedy" style="border-color:var(--line)">
-        <div class="remedy-action">On iPhone / iPad:<br/><b>1.</b> Tap the <b>Share</b> button in Safari<br/><b>2.</b> Choose <b>“Add to Home Screen”</b><br/><b>3.</b> Tap <b>Add</b> — Noor appears like a real app, ready offline.</div>
+        <div class="remedy-action">On iPhone / iPad:<br/><b>1.</b> Tap the <b>Share</b> button in Safari<br/><b>2.</b> Choose <b>“Add to Home Screen”</b><br/><b>3.</b> Tap <b>Add</b> — Noor appears on your home screen like a real app, ready offline.</div>
       </div>`;
     return;
   }
@@ -283,7 +374,7 @@ function renderInstallCard(el) {
   if (installable) {
     body.innerHTML = `
       <button class="btn btn-gold btn-block" id="installBtn">⬇️ Install Noor app</button>
-      <div class="field-hint" style="margin-top:8px">Works offline after install — perfect for prayer times, adhkar and Hifz anywhere.</div>`;
+      <div class="field-hint" style="margin-top:8px">100% free · private · works completely offline — prayer times, adhkar and Hifz everywhere you go.</div>`;
     body.querySelector('#installBtn').addEventListener('click', async () => {
       const ok = await promptInstall();
       if (!ok) toast('Install prompt not available on this browser yet — try Chrome or Edge', 'info');
@@ -291,7 +382,7 @@ function renderInstallCard(el) {
   } else {
     body.innerHTML = `
       <div class="remedy" style="border-color:var(--line)">
-        <div class="remedy-action">Open the browser menu <b>(⋮)</b> and choose <b>“Add to Home Screen”</b> or <b>“Install app”</b> to keep Noor one tap away.</div>
+        <div class="remedy-action">Two taps: open the browser menu <b>(⋮)</b> → <b>“Add to Home Screen”</b> or <b>“Install app”</b>. Noor becomes a real app — free, private, works offline.</div>
       </div>`;
   }
 }

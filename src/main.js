@@ -6,7 +6,7 @@
 // ============================================================
 import './styles.css';
 import './features-round2.css';
-import { store, hijriToday, gregorianToday } from './lib.js';
+import { store, hijriToday, gregorianToday, toast } from './lib.js';
 import { initAuth } from './auth.js';
 
 // Lazy per-tab chunks: only the active tab's code is downloaded,
@@ -147,6 +147,22 @@ export async function promptInstall() {
   }
 }
 
+// Sticky top install bar — appears inside the header the moment the
+// browser says the app is installable (and hides once installed).
+function renderInstallTop() {
+  const bar = document.getElementById('installTop');
+  if (!bar) return;
+  bar.hidden = !(window.noorInstallable === true && !isStandalone());
+}
+
+const installTopBtn = document.getElementById('installTopBtn');
+if (installTopBtn) {
+  installTopBtn.addEventListener('click', async () => {
+    const ok = await promptInstall();
+    if (!ok) toast('Install prompt not available on this browser yet — try Chrome or Edge', 'info');
+  });
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -160,12 +176,14 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   window.noorInstallable = true;
+  renderInstallTop();
   window.dispatchEvent(new CustomEvent('noor-install-ready', { detail: { installable: true } }));
 });
 
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   window.noorInstallable = false;
+  renderInstallTop();
   window.dispatchEvent(new CustomEvent('noor-install-ready', { detail: { installable: false } }));
 });
 
