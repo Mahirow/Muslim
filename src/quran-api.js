@@ -11,10 +11,21 @@ const QURANCOM = 'https://api.quran.com/api/v4';
 const CLOUD = 'https://api.alquran.cloud/v1';
 const AUDIO_BASE = 'https://verses.quran.com';
 const TRANSLATION_SLUG = 'en-sahih-international'; // Saheeh International
-const RECITER_ID = 7; // Mishary Rashid Alafasy (Murattal)
+const RECITER_ID = 7; // default: Mishary Rashid Alafasy (Murattal)
 
-// In-memory cache of fetched surah details (per session)
+// In-memory cache of fetched surah details (per session, keyed by reciter)
 const detailCache = new Map();
+
+/**
+ * Fetch the available reciters (quran.com recitation resources) so the
+ * reader can offer a chooser. Free, live, no hardcoded IDs.
+ */
+export async function fetchRecitations() {
+  const json = await getJSON(`${QURANCOM}/resources/recitations?language=en`);
+  const recs = json.recitations || [];
+  if (!recs.length) throw new Error('No recitations');
+  return recs.map((r) => ({ id: r.id, reciter_name: r.reciter_name, style: r.style || '' }));
+}
 
 /** Simple GET wrapper with timeout for robustness. */
 export async function getJSON(url, timeoutMs = 20000) {
@@ -91,11 +102,11 @@ export async function fetchSurahs(force = false) {
    ============================================================ */
 const stripHtml = (s) => String(s || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
-async function fetchSurahDetailQuranCom(number) {
+async function fetchSurahDetailQuranCom(number, reciterId) {
   const [verseJson, transJson, audioJson] = await Promise.all([
     getJSON(`${QURANCOM}/quran/verses/uthmani?chapter_number=${number}`),
     getJSON(`${QURANCOM}/quran/translations/${TRANSLATION_SLUG}?chapter_number=${number}`),
-    getJSON(`${QURANCOM}/quran/recitations/${RECITER_ID}?chapter_number=${number}`),
+    getJSON(`${QURANCOM}/quran/recitations/${reciterId}?chapter_number=${number}`),
   ]);
 
   const verses = verseJson.verses || [];
@@ -183,16 +194,18 @@ async function fetchSurahDetailCloud(number) {
 
 /**
  * Fetch one surah: Arabic text, English translation and ayah-by-ayah
- * audio streams. Quran.com primary, AlQuran Cloud automatic fallback.
+ * audio streams for the chosen reciter. Quran.com primary, AlQuran
+ * Cloud automatic fallback (fallback audio stays on alafasy).
  */
-export async function fetchSurahDetail(number, force = false) {
-  if (detailCache.has(number) && !force) return detailCache.get(number);
+export async function fetchSurahDetail(number, force = false, reciterId = RECITER_ID) {
+  const key = number + ':' + reciterId;
+  if (detailCache.has(key) && !force) return detailCache.get(key);
   let detail;
   try {
-    detail = await fetchSurahDetailQuranCom(number);
+    detail = await fetchSurahDetailQuranCom(number, reciterId);
   } catch {
     detail = await fetchSurahDetailCloud(number);
   }
-  detailCache.set(number, detail);
+  detailCache.set(key, detail);
   return detail;
 }

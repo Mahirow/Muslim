@@ -1,12 +1,15 @@
 // ============================================================
 //  TAB 2 — QURAN & HIFZ
-//  - 114 surah directory (fetched from alquran.cloud)
+//  - 114 surah directory (fetched from quran.com)
 //  - Dual reading & listening engine (Arabic + English + audio)
+//  - Reciter chooser + global mini-player (keeps playing across tabs)
+//  - Ayah bookmarks (saved list with jump-to)
 //  - AI Smart Hifz voice tester (Web Speech API, ar-SA / ar-AE)
 // ============================================================
-import { fetchSurahs, fetchSurahDetail } from '../quran-api.js';
+import { fetchSurahs, fetchSurahDetail, fetchRecitations } from '../quran-api.js';
 import { store, vibrate, toast, esc, wordsOf, normalizeArabic } from '../lib.js';
 import { searchQuran, randomAyah, fetchTafsirSources, fetchTafsir, fetchJuz } from '../ummah-api.js';
+import { switchTab } from '../main.js';
 
 let surahs = [];            // 114 surah list
 let current = null;         // current surah detail
@@ -22,6 +25,12 @@ let hifz = {
 };
 
 const LANGS = ['ar-SA', 'ar-AE'];
+const BM_KEY = 'noor.quran.bms';
+let reciters = [];
+let reciterId = store.get('noor.quran.reciter', 7);
+let lastAyah = 1;
+let bookmarks = store.get(BM_KEY, []);
+let mini = null;
 
 export function mount(el) {
   el.innerHTML = `
@@ -31,6 +40,7 @@ export function mount(el) {
       <button class="seg-btn" data-view="search">🔍 Search</button>
       <button class="seg-btn" data-view="tafsir">📜 Tafsir</button>
       <button class="seg-btn" data-view="hifz">🎙️ Hifz</button>
+      <button class="seg-btn" data-view="saved">🔖 Saved</button>
     </div>
     <div id="quranView"></div>
   `;
@@ -47,6 +57,7 @@ function switchView(el, view) {
   else if (view === 'juz') renderJuz(el);
   else if (view === 'search') renderSearch(el);
   else if (view === 'tafsir') renderTafsir(el);
+  else if (view === 'saved') renderSaved(el);
   else renderHifz(el);
 }
 
@@ -330,9 +341,10 @@ async function renderTafsir(el) {
 /* ============================================================
    Reader + audio player
    ============================================================ */
-async function openSurah(number, jumpAyah = null) {
+async function openSurah(number, jumpAyah = null, keepAudio = false) {
   const host = document.querySelector('#quranView');
-  stopPlayback();
+  if (!keepAudio) stopPlayback();
+  lastAyah = jumpAyah || 1;
   host.innerHTML = `
     <div class="card">
       <div class="reader-head">
@@ -340,16 +352,21 @@ async function openSurah(number, jumpAyah = null) {
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
         </button>
         <div class="reader-title"><h3><span class="ar" id="rArName">…</span><span id="rEnName">Surah</span></h3><p id="rMeta">Loading from quran.com…</p></div>
+        <button class="bm-btn" id="bmBtn" aria-label="Bookmark this ayah">🔖</button>
       </div>
       <div class="audio-bar">
         <button class="audio-play" id="playBtn" aria-label="Play surah">
           <svg id="playIco" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>
         </button>
         <div class="audio-info">
-          <div class="audio-title">Alafasy recitation · streaming</div>
+          <div class="audio-title"><span id="reciterLabel">Loading reciters…</span> · streaming</div>
           <div class="audio-status" id="audioStatus">Tap play to listen while you read</div>
           <div class="audio-seek"><span id="audioSeek"></span></div>
         </div>
+      </div>
+      <div class="reciter-row">
+        <label class="field-label" for="reciterSel">Reciter</label>
+        <select class="select reciter-select" id="reciterSel" aria-label="Choose reciter"></select>
       </div>
       <div id="ayahList"><div class="empty"><div class="spinner"></div>Fetching Arabic · English · audio (quran.com)…</div></div>
     </div>`;
@@ -363,6 +380,8 @@ async function openSurah(number, jumpAyah = null) {
     document.getElementById('rMeta').textContent = `${current.englishNameTranslation} · ${current.revelationType} · ${current.numberOfAyahs} verses`;
     renderAyahs();
     wirePlay();
+    wireReciter(host);
+    wireBmBtn(host);
     if (jumpAyah) {
       const idx = current.ayahs.findIndex((a) => a.num === jumpAyah);
       if (idx >= 0) {
@@ -394,6 +413,7 @@ function renderAyahs() {
         <div class="ayah-en">${esc(a.en)}</div>
         <div class="ayah-actions">
           <button class="ayah-tafsir-btn" data-i="${i}" aria-label="Tafsir of this ayah">📖 Tafsir</button>
+          <button class="ayah-bm-btn ${bmHas(current.number, a.num) ? 'on' : ''}" data-i="${i}" aria-label="Bookmark this ayah">🔖</button>
           <span class="ayah-ar-note">tap the verse to play audio</span>
         </div>
       </div>`
@@ -402,6 +422,16 @@ function renderAyahs() {
     node.addEventListener('click', () => {
       const i = parseInt(node.dataset.i, 10);
       playFrom(i);
+    });
+  });
+  document.querySelectorAll('.ayah-bm-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const i = parseInt(btn.dataset.i, 10);
+      const ayah = current.ayahs[i];
+      if (!ayah) return;
+      bmToggle(current.number, ayah.num);
+      btn.classList.toggle('on');
     });
   });
   document.querySelectorAll('.ayah-tafsir-btn').forEach((btn) => {
@@ -453,6 +483,7 @@ function ensureAudio() {
       }
     });
   }
+  ensureMini();
 }
 function playFrom(i) {
   if (!current || !current.ayahs[i]) return stopPlayback();
@@ -464,9 +495,11 @@ function playFrom(i) {
   stopPlayback(false);
   playing.active = true;
   playing.index = i;
+  lastAyah = ayah.num;
   audioEl.src = ayah.audio;
   audioEl.play().catch(() => toast('Audio blocked — tap play again', 'error'));
   updatePlayUI();
+  updateMini();
   document.querySelectorAll('#ayahList .ayah').forEach((n, idx) => n.classList.toggle('playing', idx === i));
   document.getElementById('ayahList').children[i]?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   clearInterval(playing.timer);
@@ -489,6 +522,7 @@ function stopPlayback(ui = true) {
     if (ico) ico.innerHTML = '<path d="M7 4.5v15l13-7.5z"/>';
     document.querySelectorAll('#ayahList .ayah.playing').forEach((n) => n.classList.remove('playing'));
   }
+  if (mini) mini.classList.remove('show');
 }
 function wirePlay() {
   document.getElementById('playBtn').addEventListener('click', () => {
@@ -501,12 +535,173 @@ function updatePlayUI() {
   const st = document.getElementById('audioStatus');
   if (ico) ico.innerHTML = '<path d="M7 4.5v15h4v-15zM14 4.5v15h4v-15z"/>';
   if (st && current) st.textContent = `Playing ayah ${current.ayahs[playing.index].num} of ${current.numberOfAyahs}`;
+  updateMini();
 }
 function updateSeek() {
   const seek = document.getElementById('audioSeek');
   if (seek && audioEl && audioEl.duration) {
     seek.style.width = Math.min(100, (audioEl.currentTime / audioEl.duration) * 100) + '%';
   }
+  updateMini();
+}
+
+/* ---------------- reciter chooser ---------------- */
+async function wireReciter(host) {
+  const sel = host.querySelector('#reciterSel');
+  if (!sel) return;
+  const label = document.getElementById('reciterLabel');
+  try {
+    if (!reciters.length) reciters = await fetchRecitations();
+  } catch {
+    reciters = [{ id: 7, reciter_name: 'Mishary Rashid Alafasy', style: 'Murattal' }];
+  }
+  sel.innerHTML = reciters
+    .map((r) => `<option value="${r.id}">${esc(r.reciter_name)}${r.style ? ' · ' + esc(r.style) : ''}</option>`)
+    .join('');
+  if (!reciters.some((r) => r.id === reciterId)) reciterId = reciters[0].id;
+  sel.value = reciterId;
+  const cur = reciters.find((r) => r.id === reciterId);
+  if (label && cur) label.textContent = cur.reciter_name.split(' ').slice(0, 2).join(' ');
+  sel.addEventListener('change', async () => {
+    reciterId = parseInt(sel.value, 10);
+    store.set('noor.quran.reciter', reciterId);
+    const cur2 = reciters.find((r) => r.id === reciterId);
+    if (label && cur2) label.textContent = cur2.reciter_name.split(' ').slice(0, 2).join(' ');
+    if (!current) return;
+    const num = current.number;
+    const ayahList = document.getElementById('ayahList');
+    if (ayahList) ayahList.innerHTML = `<div class="empty"><div class="spinner"></div>Switching reciter…</div>`;
+    try {
+      current = await fetchSurahDetail(num, true, reciterId);
+      renderAyahs();
+      wirePlay();
+      toast('Reciter changed', 'success');
+    } catch {
+      toast('Could not load this reciter — try another', 'error');
+      openSurah(num, null, false);
+    }
+  });
+}
+
+/* ---------------- ayah bookmarks ---------------- */
+function bmSave() {
+  store.set(BM_KEY, bookmarks.slice(-100));
+}
+function bmHas(s, a) {
+  return bookmarks.some((b) => b.s === s && b.a === a);
+}
+function bmToggle(s, a) {
+  const idx = bookmarks.findIndex((b) => b.s === s && b.a === a);
+  if (idx >= 0) {
+    bookmarks.splice(idx, 1);
+    toast('Bookmark removed', 'info');
+  } else {
+    const surah = surahs.find((x) => x.number === s);
+    bookmarks.push({ s, a, label: (surah ? surah.englishName : 'Surah ' + s) + ' · ' + a, ts: Date.now() });
+    toast('Ayah bookmarked 🔖', 'success');
+  }
+  bmSave();
+}
+function wireBmBtn(host) {
+  const btn = host.querySelector('#bmBtn');
+  if (!btn) return;
+  const sync = () => btn.classList.toggle('on', bmHas(current.number, lastAyah));
+  sync();
+  btn.addEventListener('click', () => {
+    bmToggle(current.number, lastAyah);
+    sync();
+  });
+}
+async function renderSaved(el) {
+  const host = el.querySelector('#quranView');
+  const bms = [...bookmarks].sort((x, y) => x.ts - y.ts);
+  host.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <span class="card-ico gold">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12a1 1 0 0 1 1 1v15l-4-2.5L11 20l-4-2.5L5 20V5a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 11.5h4"/></svg>
+        </span>
+        <div><div class="card-title">Bookmarked Ayahs</div><div class="card-sub">${bms.length} saved · tap to open in the reader</div></div>
+      </div>
+      <div id="bmList">
+        ${bms.length ? bms.map((b, i) => `
+          <div class="bm-row">
+            <button class="bm-open" data-i="${i}">
+              <span class="bm-ref">${b.s}:${esc(b.a)}</span>
+              <span class="bm-label">${esc(b.label)}</span>
+            </button>
+            <button class="bm-del" data-i="${i}" aria-label="Remove bookmark">✕</button>
+          </div>`).join('')
+          : `<div class="empty">No bookmarks yet — open any surah and tap the 🔖 button to save an ayah.</div>`}
+      </div>
+    </div>`;
+  host.querySelectorAll('.bm-open').forEach((b) =>
+    b.addEventListener('click', () => {
+      const bm = bms[parseInt(b.dataset.i, 10)];
+      openSurah(bm.s, bm.a);
+    })
+  );
+  host.querySelectorAll('.bm-del').forEach((b) =>
+    b.addEventListener('click', () => {
+      const bm = bms[parseInt(b.dataset.i, 10)];
+      bookmarks = bookmarks.filter((x) => !(x.s === bm.s && x.a === bm.a));
+      bmSave();
+      renderSaved(el);
+    })
+  );
+}
+
+/* ---------------- global mini-player ---------------- */
+function ensureMini() {
+  if (mini) return;
+  mini = document.createElement('div');
+  mini.className = 'mini-player';
+  mini.id = 'quranMini';
+  mini.innerHTML = `
+    <button class="mini-art" aria-hidden="true">🎧</button>
+    <div class="mini-info">
+      <div class="mini-title" id="miniTitle">—</div>
+      <div class="mini-sub" id="miniSub">Ayah 0 / 0</div>
+    </div>
+    <button class="mini-play" id="miniPlay" aria-label="Play or pause">⏸</button>
+    <button class="mini-close" id="miniClose" aria-label="Close player">✕</button>`;
+  document.body.appendChild(mini);
+  mini.querySelector('#miniPlay').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!audioEl || !playing.active) return;
+    if (audioEl.paused) audioEl.play().catch(() => {});
+    else audioEl.pause();
+    updateMini();
+  });
+  mini.querySelector('#miniClose').addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopPlayback();
+  });
+  mini.addEventListener('click', () => {
+    switchTab('quran');
+    if (!document.getElementById('ayahList') && current) {
+      openSurah(current.number, undefined, true);
+    } else if (current) {
+      const idx = playing.index >= 0 ? playing.index : lastAyah - 1;
+      const node = document.getElementById('ayahList') && document.getElementById('ayahList').children[idx];
+      if (node) node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  });
+}
+function updateMini() {
+  if (!mini) return;
+  if (!current || !playing.active) {
+    mini.classList.remove('show');
+    return;
+  }
+  mini.classList.add('show');
+  const idx = Math.max(0, playing.index);
+  const t = document.getElementById('miniTitle');
+  const s = document.getElementById('miniSub');
+  const p = document.getElementById('miniPlay');
+  if (t) t.textContent = `${current.number} · ${current.englishName}`;
+  if (s) s.textContent = `Ayah ${current.ayahs[idx].num} / ${current.numberOfAyahs}`;
+  if (p) p.textContent = audioEl && !audioEl.paused ? '⏸' : '▶';
 }
 
 /* ============================================================
@@ -597,6 +792,36 @@ function getSpeechRecognition() {
   return SR ? new SR() : null;
 }
 
+// Normalize a spoken/expected word for forgiving comparison:
+// strip tashkeel + tatweel, unify alef/hamza/ya/ta-marbuta, drop punctuation.
+function hifzNorm(w) {
+  return normalizeArabic(w)
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/\u0640/g, '');
+}
+function editDistance(a, b) {
+  a = String(a);
+  b = String(b);
+  if (a === b) return 0;
+  const m = a.length;
+  const n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  const dp = [];
+  for (let i = 0; i <= m; i++) dp[i] = [i];
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+function matchWord(a, b) {
+  return a === b || editDistance(a, b) <= 1;
+}
+
 function toggleHifzMic(el) {
   const host = el.querySelector('#quranView');
   const body = host.querySelector('#hifzBody');
@@ -622,7 +847,7 @@ function startHifz(el, body) {
   rec.lang = LANGS[hifz.langIdx];
   rec.continuous = true;
   rec.interimResults = true;
-  rec.maxAlternatives = 1;
+  rec.maxAlternatives = 4; // pick the alternative closest to the official text
 
   // Hide the reading text — blank slate canvas
   canvas.classList.add('recording');
@@ -637,18 +862,34 @@ function startHifz(el, body) {
     transcript = '';
     for (let i = 0; i < ev.results.length; i++) {
       const r = ev.results[i];
-      transcript += r[0].transcript + (r.isFinal ? ' ' : '');
+      // Among the engine's alternatives, keep the one closest to the next official word
+      const expected = official[hifz.okCount] ? hifzNorm(official[hifz.okCount]) : '';
+      let chosen = r[0].transcript;
+      let bestD = editDistance(hifzNorm(chosen), expected);
+      for (let k = 1; k < r.length; k++) {
+        const d = editDistance(hifzNorm(r[k].transcript), expected);
+        if (d < bestD) {
+          bestD = d;
+          chosen = r[k].transcript;
+        }
+      }
+      transcript += chosen + (r.isFinal ? ' ' : '');
     }
-    const spoken = normalizeArabic(transcript).split(' ').filter(Boolean);
+    const spoken = hifzNorm(transcript).split(' ').filter(Boolean);
 
-    // Sequential comparison against official array order
+    // Sequential comparison with fuzzy matching (Levenshtein ≤ 1) and a
+    // one-word lookahead so a skipped/missed word doesn't derail the run.
     const seq = [];
     let i = 0;
     for (const w of spoken) {
-      const expected = official[i] ? normalizeArabic(official[i]) : null;
-      if (expected && w === expected) {
+      const e1 = official[i] ? hifzNorm(official[i]) : null;
+      const e2 = official[i + 1] ? hifzNorm(official[i + 1]) : null;
+      if (e1 && matchWord(w, e1)) {
         seq.push({ w, cls: 'ok' });
         i++;
+      } else if (e2 && matchWord(w, e2)) {
+        seq.push({ w, cls: 'ok' });
+        i += 2; // recogniser skipped one word — advance past it
       } else {
         seq.push({ w, cls: 'err' }); // deviation → bright red
       }

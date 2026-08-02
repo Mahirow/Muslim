@@ -43,6 +43,7 @@ export function mount(el) {
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v3m4-3v3M4 9h16M6 5h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 13h8M8 16.5h5"/></svg>
         </span>
         <div><div class="card-title">Daily Motivation</div><div class="card-sub">A verse or hadith for your day</div></div>
+        <button class="quote-share-btn" id="qShareHead" title="Download the card as a shareable image">📤 Share</button>
       </div>
       <div id="quoteBody"></div>
       <div class="quote-nav">
@@ -156,6 +157,7 @@ export function mount(el) {
   el.querySelector('#qRandomAyah').addEventListener('click', () => showRandomAyah(el));
   el.querySelector('#qRandomHadith').addEventListener('click', () => showRandomHadith(el));
   el.querySelector('#qShare').addEventListener('click', shareQuoteCard);
+  el.querySelector('#qShareHead').addEventListener('click', shareQuoteCard);
 
   // ---- adhkar ----
   el.querySelector('#adhM').addEventListener('click', () => setAdhView('m', el));

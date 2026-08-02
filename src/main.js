@@ -33,7 +33,7 @@ Object.keys(TABS).forEach((name) => {
   content.appendChild(panel);
 });
 
-async function switchTab(name, persist = true) {
+export async function switchTab(name, persist = true) {
   if (!TABS[name]) name = 'home';
   Object.keys(TABS).forEach((n) => {
     const panel = document.getElementById('panel-' + n);

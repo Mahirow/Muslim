@@ -874,3 +874,103 @@ html[data-theme="dark"] .nav-btn.active .nav-icon {
   .card, .nav-btn, .btn, .tab-panel { transition-duration: 0.01ms !important; }
   .tab-panel.active { animation-duration: 0.01ms !important; }
 }
+
+/* ============================================================
+   QURAN UPGRADES — reciter chooser, bookmarks, mini-player,
+   and the prominent motivation share button
+   ============================================================ */
+.reciter-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: -4px 0 14px;
+}
+.reciter-row .field-label { margin: 0; flex: none; }
+.reciter-select { padding: 9px 34px 9px 12px; font-size: 0.84rem; }
+
+.bm-btn {
+  margin-left: auto; flex: none;
+  width: 40px; height: 40px; border-radius: 13px;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--line); background: var(--surface);
+  font-size: 1rem; cursor: pointer; transition: all 0.2s ease;
+}
+.bm-btn.on { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: var(--gold); }
+html[data-theme="dark"] .bm-btn.on { background: rgba(245, 158, 11, 0.22); border-color: rgba(251, 191, 36, 0.6); }
+
+.ayah-bm-btn {
+  border: 1.5px solid var(--line); background: var(--surface);
+  border-radius: 9px; padding: 4px 8px; font-size: 0.82rem;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.ayah-bm-btn.on { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: var(--gold); }
+html[data-theme="dark"] .ayah-bm-btn.on { background: rgba(245, 158, 11, 0.22); border-color: rgba(251, 191, 36, 0.6); }
+
+/* bookmarks list */
+.bm-row {
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px dashed var(--line); padding: 10px 2px;
+}
+.bm-row:last-child { border-bottom: none; }
+.bm-open {
+  flex: 1; text-align: left; background: none; border: none;
+  cursor: pointer; font-family: inherit; padding: 2px; min-width: 0;
+}
+.bm-ref { display: block; font-size: 0.8rem; font-weight: 800; color: var(--emerald-2); }
+.bm-label { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bm-del {
+  flex: none; width: 30px; height: 30px; border-radius: 9px;
+  border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--muted); cursor: pointer; transition: transform 0.15s ease;
+}
+.bm-del:active { transform: scale(0.92); }
+
+/* global mini-player — visible across all tabs while recitation plays */
+.mini-player {
+  position: fixed; left: 50%;
+  transform: translate(-50%, 26px);
+  bottom: calc(var(--nav-h) + 10px);
+  width: calc(100% - 24px); max-width: 456px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 18px;
+  background: rgba(4, 51, 40, 0.92); color: #fff;
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 16px 40px -14px rgba(2, 44, 34, 0.7);
+  z-index: 70;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.mini-player.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.mini-art {
+  flex: none; width: 38px; height: 38px; border-radius: 12px;
+  border: none; background: linear-gradient(135deg, #fbbf24, #d97706);
+  font-size: 1.05rem; display: grid; place-items: center;
+  box-shadow: 0 6px 14px -6px rgba(217, 119, 6, 0.6);
+}
+.mini-info { flex: 1; min-width: 0; }
+.mini-title { font-size: 0.8rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-sub { font-size: 0.7rem; color: rgba(255, 255, 255, 0.75); }
+.mini-play, .mini-close {
+  flex: none; width: 34px; height: 34px; border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1); color: #fff;
+  font-size: 0.9rem; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease;
+}
+.mini-play:active, .mini-close:active { transform: scale(0.9); }
+.mini-play:hover, .mini-close:hover { background: rgba(255, 255, 255, 0.18); }
+
+/* daily motivation — prominent share button */
+.quote-share-btn {
+  margin-left: auto; flex: none;
+  border: 1.5px solid var(--gold);
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #b45309; font-family: inherit;
+  font-size: 0.74rem; font-weight: 800;
+  padding: 7px 12px; border-radius: 999px;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.quote-share-btn:active { transform: scale(0.94); }
+html[data-theme="dark"] .quote-share-btn {
+  background: rgba(245, 158, 11, 0.18); color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.6);
+}
