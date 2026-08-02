@@ -53,6 +53,7 @@ export function mount(el) {
       <div class="quote-extra">
         <button class="quote-extra-btn" id="qRandomAyah">🎲 Random Ayah</button>
         <button class="quote-extra-btn" id="qRandomHadith">📜 Random Hadith</button>
+        <button class="quote-extra-btn" id="qShare" title="Download the card as a shareable image">🖼️ Share as image</button>
       </div>
     </div>
 
@@ -154,6 +155,7 @@ export function mount(el) {
   el.querySelector('#qNext').addEventListener('click', () => cycleQuote(1));
   el.querySelector('#qRandomAyah').addEventListener('click', () => showRandomAyah(el));
   el.querySelector('#qRandomHadith').addEventListener('click', () => showRandomHadith(el));
+  el.querySelector('#qShare').addEventListener('click', shareQuoteCard);
 
   // ---- adhkar ----
   el.querySelector('#adhM').addEventListener('click', () => setAdhView('m', el));
@@ -311,6 +313,281 @@ function cycleQuote(dir) {
   void body.offsetWidth;
   body.style.animation = 'fadeUp 0.35s ease';
   renderQuote();
+}
+
+/* ---------------- daily motivation → shareable image ---------------- */
+function wrapCtxText(ctx, text, maxWidth) {
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (line && ctx.measureText(test).width > maxWidth) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawSparkle(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r);
+  ctx.lineTo(cx + r * 0.28, cy - r * 0.28);
+  ctx.lineTo(cx + r, cy);
+  ctx.lineTo(cx + r * 0.28, cy + r * 0.28);
+  ctx.lineTo(cx, cy + r);
+  ctx.lineTo(cx - r * 0.28, cy + r * 0.28);
+  ctx.lineTo(cx - r, cy);
+  ctx.lineTo(cx - r * 0.28, cy - r * 0.28);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawDiamond(ctx, cx, cy, r) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r);
+  ctx.lineTo(cx + r, cy);
+  ctx.lineTo(cx, cy + r);
+  ctx.lineTo(cx - r, cy);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawStar(ctx, cx, cy, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const rad = i % 2 === 0 ? r : r * 0.42;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const px = cx + Math.cos(a) * rad;
+    const py = cy + Math.sin(a) * rad;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawQuoteCard(ar, en, ref) {
+  const W = 1080;
+  const H = 1350;
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const x = c.getContext('2d');
+
+  const EMERALD = '#064e3b';
+  const GOLD_SOFT = '#f0b75e';
+  const CREAM = '#f7f1e3';
+
+  // background — emerald radial
+  const bg = x.createRadialGradient(W / 2, 320, 120, W / 2, H / 2, 860);
+  bg.addColorStop(0, '#0a5c44');
+  bg.addColorStop(0.55, EMERALD);
+  bg.addColorStop(1, '#043328');
+  x.fillStyle = bg;
+  x.fillRect(0, 0, W, H);
+
+  // faint sparkle texture
+  x.fillStyle = 'rgba(255,255,255,0.05)';
+  [[160, 260], [925, 470], [150, 900], [940, 1060], [320, 1215], [800, 140], [510, 66], [60, 560]].forEach(([sx, sy]) => drawSparkle(x, sx, sy, 10));
+
+  // gold frame
+  x.strokeStyle = 'rgba(240,183,94,0.9)';
+  x.lineWidth = 3;
+  x.strokeRect(36, 36, W - 72, H - 72);
+  x.strokeStyle = 'rgba(240,183,94,0.4)';
+  x.lineWidth = 1.5;
+  x.strokeRect(54, 54, W - 108, H - 108);
+  x.fillStyle = GOLD_SOFT;
+  [[36, 36], [W - 36, 36], [36, H - 36], [W - 36, H - 36]].forEach(([cx, cy]) => drawDiamond(x, cx, cy, 11));
+
+  // crescent + star
+  const mx = 470;
+  const my = 228;
+  const mr = 52;
+  x.fillStyle = GOLD_SOFT;
+  x.beginPath();
+  x.arc(mx, my, mr, 0, Math.PI * 2);
+  x.fill();
+  x.globalCompositeOperation = 'destination-out';
+  x.beginPath();
+  x.arc(mx + 24, my - 16, mr - 13, 0, Math.PI * 2);
+  x.fill();
+  x.globalCompositeOperation = 'source-over';
+  x.fillStyle = '#0a5c44';
+  x.beginPath();
+  x.arc(mx + 24, my - 16, mr - 13, 0, Math.PI * 2);
+  x.fill();
+  drawStar(x, 596, 198, 30, GOLD_SOFT);
+
+  // wordmark
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillStyle = GOLD_SOFT;
+  x.font = '600 46px "Segoe UI", system-ui, sans-serif';
+  x.fillText('N O O R', W / 2, 332);
+
+  // divider under wordmark
+  x.strokeStyle = 'rgba(240,183,94,0.55)';
+  x.lineWidth = 2;
+  x.beginPath();
+  x.moveTo(W / 2 - 150, 374);
+  x.lineTo(W / 2 - 26, 374);
+  x.stroke();
+  x.beginPath();
+  x.moveTo(W / 2 + 26, 374);
+  x.lineTo(W / 2 + 150, 374);
+  x.stroke();
+  drawDiamond(x, W / 2, 374, 7);
+
+  let y = 476;
+  x.textBaseline = 'top';
+
+  // Arabic (right-aligned)
+  if (ar) {
+    let size = 58;
+    let lines = [];
+    for (let pass = 0; pass < 3; pass++) {
+      x.font = size + 'px "Noto Naskh Arabic","Amiri","Scheherazade New","Traditional Arabic",serif';
+      lines = wrapCtxText(x, ar, 880);
+      if (lines.length <= 5 || size <= 36) break;
+      size -= 7;
+    }
+    x.fillStyle = CREAM;
+    x.textAlign = 'right';
+    const lh = Math.round(size * 1.6);
+    for (const line of lines) {
+      x.fillText(line, W - 100, y);
+      y += lh;
+    }
+    // ornament under arabic
+    y += 10;
+    x.strokeStyle = 'rgba(240,183,94,0.5)';
+    x.lineWidth = 2;
+    x.beginPath();
+    x.moveTo(W / 2 - 140, y);
+    x.lineTo(W / 2 - 24, y);
+    x.stroke();
+    x.beginPath();
+    x.moveTo(W / 2 + 24, y);
+    x.lineTo(W / 2 + 140, y);
+    x.stroke();
+    drawDiamond(x, W / 2, y, 7);
+    y += 64;
+  }
+
+  // English (centered, elegant)
+  if (en) {
+    const plain = String(en).replace(/^[“”"']+|[“”"']+$/g, '');
+    let size = 44;
+    let lines = [];
+    for (let pass = 0; pass < 3; pass++) {
+      x.font = 'italic ' + size + 'px Georgia, "Times New Roman", serif';
+      lines = wrapCtxText(x, plain, 860);
+      if (lines.length <= 5 || size <= 30) break;
+      size -= 5;
+    }
+    const lh = Math.round(size * 1.5);
+    // decorative opening quote
+    x.fillStyle = GOLD_SOFT;
+    x.font = 'italic 84px Georgia, serif';
+    x.textAlign = 'center';
+    x.fillText('\u201C', W / 2, y - lh * 0.35);
+    x.fillStyle = CREAM;
+    x.font = 'italic ' + size + 'px Georgia, "Times New Roman", serif';
+    for (const line of lines) {
+      x.fillText(line, W / 2, y);
+      y += lh;
+    }
+    y += 30;
+  }
+
+  // reference
+  if (ref) {
+    const refY = Math.min(Math.max(y, 1080), 1200);
+    x.fillStyle = GOLD_SOFT;
+    x.font = '500 34px "Segoe UI", system-ui, sans-serif';
+    x.textAlign = 'center';
+    x.fillText(ref, W / 2, refY);
+  }
+
+  // footer ornament + watermark
+  x.strokeStyle = 'rgba(240,183,94,0.4)';
+  x.lineWidth = 1.5;
+  x.beginPath();
+  x.moveTo(W / 2 - 90, H - 150);
+  x.lineTo(W / 2 - 18, H - 150);
+  x.stroke();
+  x.beginPath();
+  x.moveTo(W / 2 + 18, H - 150);
+  x.lineTo(W / 2 + 90, H - 150);
+  x.stroke();
+  drawDiamond(x, W / 2, H - 150, 5);
+  x.fillStyle = 'rgba(247,241,227,0.55)';
+  x.font = '500 27px "Segoe UI", system-ui, sans-serif';
+  x.textAlign = 'center';
+  x.fillText('Noor \u00B7 Muslim Companion', W / 2, H - 92);
+
+  return c;
+}
+
+function downloadBlob(blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'noor-daily-motivation.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Image saved — ready to share! \uD83D\uDCE4', 'success');
+}
+
+function dataURLtoBlob(dataUrl) {
+  const parts = dataUrl.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const bin = atob(parts[1]);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function shareQuoteCard() {
+  const read = (sel) => {
+    const n = document.querySelector('#quoteBody ' + sel);
+    return n ? n.textContent.trim() : '';
+  };
+  const ar = read('.quote-ar');
+  const en = read('.quote-en');
+  const ref = read('.quote-ref');
+  if (!ar && !en) {
+    toast('Nothing to share yet — open a quote first', 'info');
+    return;
+  }
+  const canvas = drawQuoteCard(ar, en, ref);
+  const done = (blob) => {
+    if (!blob) {
+      toast('Could not create the image on this device', 'error');
+      return;
+    }
+    const file = new File([blob], 'noor-daily-motivation.png', { type: 'image/png' });
+    const shareData = { files: [file], title: 'Noor — Daily Motivation' };
+    if (navigator.canShare && navigator.canShare(shareData)) {
+      navigator.share(shareData).then(() => vibrate(10)).catch(() => downloadBlob(blob));
+      return;
+    }
+    downloadBlob(blob);
+  };
+  if (canvas.toBlob) {
+    canvas.toBlob(done, 'image/png');
+  } else {
+    done(dataURLtoBlob(canvas.toDataURL('image/png')));
+  }
 }
 
 /* ---------------- live random ayah / hadith (Ummah API) ---------------- */

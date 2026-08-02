@@ -8,12 +8,11 @@
 //  Each feature is its own segment tab — no page reloads.
 // ============================================================
 import { store, toast, esc, money, vibrate, successSound, fracAdd, fracSub, fracMul, fracVal, fmtFrac } from '../lib.js';
-import { BABY_NAMES, E_NUMBERS } from '../data.js';
+import { E_NUMBERS } from '../data.js';
 import { fetchZakatPrices } from '../ummah-api.js';
 
 const ZAK_KEY = 'noor.zakat';
 const INH_KEY = 'noor.inherit';
-const NAME_KEY = 'noor.names.search';
 const ENUM_KEY = 'noor.enum.search';
 const SADAQAH_KEY = 'noor.sadaqah';
 
@@ -52,7 +51,6 @@ export function mount(el) {
       <button class="seg-btn active" data-view="zakat">💰 Zakat</button>
       <button class="seg-btn" data-view="sadaqah">🤲 Sadaqah</button>
       <button class="seg-btn" data-view="inherit">🧬 Inheritance</button>
-      <button class="seg-btn" data-view="names">👶 Names</button>
       <button class="seg-btn" data-view="enum">🔍 E-Numbers</button>
     </div>
     <div id="finView"></div>
@@ -68,7 +66,6 @@ function switchView(el, view) {
   if (view === 'zakat') renderZakat(el);
   else if (view === 'sadaqah') renderSadaqahView(el);
   else if (view === 'inherit') renderInheritance(el);
-  else if (view === 'names') renderNamesView(el);
   else renderEnumsView(el);
 }
 
@@ -463,54 +460,6 @@ function calcInheritance() {
     </table>
     <div class="inher-note">Estimates standard Fara'id cases (debts and bequests assumed already settled). Complex estates — siblings, grandparents, multiple wives, wills — should be referred to a qualified scholar.</div>`;
   box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-/* ---------------- baby names ---------------- */
-function renderNamesView(el) {
-  const host = el.querySelector('#finView');
-  host.innerHTML = `
-    <div class="card">
-      <div class="card-head">
-        <span class="card-ico">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
-        </span>
-        <div><div class="card-title">Islamic Baby Names</div><div class="card-sub">${BABY_NAMES.length} authentic names with meanings</div></div>
-      </div>
-      <div class="searchbar">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="input" id="nameSearch" type="search" placeholder="Search a name or meaning…" autocomplete="off" />
-      </div>
-      <div id="nameList" style="max-height:62dvh;overflow-y:auto;padding-right:2px"></div>
-    </div>`;
-  host.querySelector('#nameSearch').value = store.get(NAME_KEY, '');
-  renderNames(el);
-  host.querySelector('#nameSearch').addEventListener('input', (e) => {
-    store.set(NAME_KEY, e.target.value);
-    renderNames(el);
-  });
-}
-
-function renderNames(el) {
-  const host = el.querySelector('#finView');
-  const q = (host.querySelector('#nameSearch').value || '').trim().toLowerCase();
-  const listHost = host.querySelector('#nameList');
-  const list = BABY_NAMES.filter(
-    (n) =>
-      !q ||
-      n.n.toLowerCase().includes(q) ||
-      n.ar.includes(q) ||
-      n.m.toLowerCase().includes(q)
-  );
-  listHost.innerHTML = list.length
-    ? list.map((n) => `
-        <div class="name-row">
-          <div class="name-ar">${n.ar}</div>
-          <div class="name-body">
-            <div class="name-title">${esc(n.n)} <span class="chip ${n.g === 'boy' ? 'chip-boy' : 'chip-girl'}">${n.g === 'boy' ? 'Boy' : 'Girl'}</span></div>
-            <div class="name-meaning">${esc(n.m)}</div>
-          </div>
-        </div>`).join('')
-    : `<div class="empty">No names match “${esc(q)}”.</div>`;
 }
 
 /* ---------------- E-numbers ---------------- */

@@ -635,3 +635,242 @@ html[data-theme="dark"] .ai-sources a { color: var(--mint); }
 @media (min-width: 560px) {
   .ai-panel { bottom: calc(var(--nav-h) + 40px); }
 }
+
+/* shareable daily-motivation card button */
+#qShare { color: #d97706; border-color: #d97706; }
+html[data-theme="dark"] #qShare { color: #fbbf24; border-color: #fbbf24; }
+#qShare:active { background: rgba(245, 158, 11, 0.18); }
+
+/* ============================================================
+   NOOR GLASS — glassmorphism design refresh
+   Layered translucent surfaces, soft glows, premium depth.
+   Falls back to near-opaque surfaces when blur is unsupported.
+   ============================================================ */
+:root {
+  --card: rgba(255, 255, 255, 0.66);
+  --surface: rgba(255, 255, 255, 0.55);
+  --surface-2: rgba(255, 255, 255, 0.75);
+  --line: rgba(6, 78, 59, 0.1);
+  --radius: 22px;
+  --shadow: 0 18px 44px -18px rgba(6, 78, 59, 0.28);
+  --shadow-sm: 0 8px 22px -10px rgba(6, 78, 59, 0.2);
+  --gold-grad: linear-gradient(135deg, #fbbf24, #f59e0b 48%, #b45309);
+  --emerald-grad: linear-gradient(160deg, #0a7a5c, #064e3b 58%, #032e24);
+}
+html[data-theme="dark"] {
+  --card: rgba(10, 47, 36, 0.55);
+  --surface: rgba(12, 53, 41, 0.5);
+  --surface-2: rgba(16, 61, 48, 0.72);
+  --line: rgba(255, 255, 255, 0.08);
+  --shadow: 0 20px 48px -20px rgba(0, 0, 0, 0.65);
+  --shadow-sm: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* page backdrop — layered emerald & gold light for the glass to refract */
+body {
+  background:
+    radial-gradient(1000px 620px at 88% -8%, rgba(217, 119, 6, 0.16), transparent 58%),
+    radial-gradient(860px 560px at -12% 4%, rgba(16, 185, 129, 0.18), transparent 55%),
+    radial-gradient(1200px 900px at 50% 118%, rgba(6, 78, 59, 0.14), transparent 62%),
+    #eef5f0;
+  background-attachment: fixed;
+}
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(1000px 620px at 88% -8%, rgba(245, 158, 11, 0.1), transparent 58%),
+    radial-gradient(860px 560px at -12% 4%, rgba(16, 185, 129, 0.09), transparent 55%),
+    radial-gradient(1200px 900px at 50% 118%, rgba(2, 44, 34, 0.9), transparent 62%),
+    #05231b;
+  background-attachment: fixed;
+}
+
+/* frosted cards */
+.card {
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 22px;
+  box-shadow: 0 14px 34px -16px rgba(6, 78, 59, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  transition: transform 0.18s ease, box-shadow 0.25s ease;
+}
+html[data-theme="dark"] .card {
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* card headers */
+.card-title { letter-spacing: -0.01em; }
+.card-ico {
+  background: linear-gradient(145deg, #d1fae5, #a7f3d0 70%);
+  border: 1px solid rgba(6, 78, 59, 0.1);
+  color: #065f46;
+  box-shadow: 0 6px 14px -6px rgba(6, 78, 59, 0.35);
+}
+.card-ico.gold {
+  background: linear-gradient(145deg, #fef3c7, #fde68a 70%);
+  border-color: rgba(217, 119, 6, 0.16);
+  color: #b45309;
+  box-shadow: 0 6px 14px -6px rgba(217, 119, 6, 0.35);
+}
+html[data-theme="dark"] .card-ico {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.08));
+  border-color: rgba(110, 231, 183, 0.14);
+  color: #6ee7b7;
+}
+html[data-theme="dark"] .card-ico.gold {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.08));
+  border-color: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+}
+
+/* segmented control — glass pill */
+.seg {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 4px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.seg-btn.active {
+  background: linear-gradient(135deg, #ffffff, #ecfdf5);
+  color: var(--emerald-2);
+  box-shadow: 0 8px 18px -9px rgba(6, 78, 59, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+html[data-theme="dark"] .seg { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .seg-btn.active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(16, 185, 129, 0.1));
+  color: #6ee7b7;
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.6);
+}
+
+/* glass inputs */
+.input, .select, .searchbar .input {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(6, 78, 59, 0.16);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.input:focus, .select:focus {
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.16);
+  outline: none;
+}
+html[data-theme="dark"] .input, html[data-theme="dark"] .select {
+  background: rgba(12, 53, 41, 0.5);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+html[data-theme="dark"] .input:focus, html[data-theme="dark"] .select:focus {
+  background: rgba(16, 61, 48, 0.8);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+}
+
+/* buttons — richer gradients + glow */
+.btn-emerald {
+  background: linear-gradient(160deg, #0a7a5c, #064e3b 58%, #043328);
+  box-shadow: 0 12px 26px -12px rgba(6, 78, 59, 0.75);
+}
+.btn-gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b 48%, #b45309);
+  box-shadow: 0 12px 26px -12px rgba(217, 119, 6, 0.8);
+}
+.btn:active { transform: scale(0.97); }
+.btn-ghost { background: rgba(209, 250, 229, 0.7); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+html[data-theme="dark"] .btn-ghost { background: rgba(16, 185, 129, 0.14); }
+
+/* sticky header — glass emerald */
+.app-header {
+  background: linear-gradient(170deg, rgba(10, 122, 92, 0.94), rgba(4, 51, 40, 0.96));
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.22);
+  box-shadow: 0 10px 28px -14px rgba(2, 44, 34, 0.7);
+}
+.brand-logo {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* bottom nav — floating glass bar */
+.bottom-nav {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  border-top: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 -10px 30px -14px rgba(2, 44, 34, 0.35);
+  border-radius: 22px 22px 0 0;
+}
+.nav-btn .nav-icon {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.04));
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.nav-btn.active .nav-icon {
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #fff;
+  box-shadow: 0 8px 18px -8px rgba(217, 119, 6, 0.65);
+  transform: translateY(-2px);
+}
+.nav-btn:active { transform: scale(0.94); }
+html[data-theme="dark"] .bottom-nav {
+  background: rgba(7, 33, 25, 0.78);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme="dark"] .nav-btn.active .nav-icon {
+  box-shadow: 0 8px 18px -8px rgba(245, 158, 11, 0.5);
+}
+
+/* big countdown — gold gradient numeral */
+.countdown-big {
+  background: linear-gradient(135deg, #fbbf24, #d97706 60%, #92400e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* badges & chips — soft glass */
+.badge, .chip { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* toast — frosted */
+.toast {
+  background: rgba(2, 44, 34, 0.9);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* tab transitions */
+.tab-panel.active { animation: panelIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* themed scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.55), rgba(6, 78, 59, 0.55));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+
+/* fallback when backdrop-filter is unsupported */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card { background: rgba(255, 255, 255, 0.94); }
+  html[data-theme="dark"] .card { background: #0a2f24; }
+  .seg { background: #e7f3ec; }
+  html[data-theme="dark"] .seg { background: #0c3529; }
+  .input, .select { background: #fff; }
+  html[data-theme="dark"] .input, html[data-theme="dark"] .select { background: #0c3529; }
+  .bottom-nav { background: rgba(255, 255, 255, 0.97); }
+  html[data-theme="dark"] .bottom-nav { background: rgba(8, 40, 31, 0.98); }
+}
+
+/* respect reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+  .card, .nav-btn, .btn, .tab-panel { transition-duration: 0.01ms !important; }
+  .tab-panel.active { animation-duration: 0.01ms !important; }
+}

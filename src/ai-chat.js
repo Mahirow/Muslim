@@ -1,8 +1,8 @@
 // ============================================================
-//  ai-chat.js — Noor AI assistant (Google Gemini)
+//  ai-chat.js — Noor AI assistant (Groq · OpenAI-compatible API)
 //  Floating chat: answers from the app's own Islamic APIs via
-//  function calling, and falls back to Google Search grounding
-//  (with cited sources) when the tools don't cover a question.
+//  function calling, plus a keyless webSearch tool (Wikimedia)
+//  that restores cited web sources for general questions.
 //  Also: voice input, personal stats mode, rate-limit guard.
 //  Lazy-loaded — the main bundle stays small until first tap.
 // ============================================================
@@ -19,13 +19,13 @@ import {
 const CHAT_KEY = 'noor.ai.chat';
 const USAGE_KEY = 'noor.ai.usage';
 const env = (n) => (import.meta.env || {})['VITE_' + n] || (import.meta.env || {})[n] || '';
-const API_KEY = env('GEMINI_API_KEY');
-const MODEL = env('GEMINI_MODEL') || 'gemini-flash-latest';
-const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const API_KEY = env('GROQ_API_KEY');
+const MODEL = env('GROQ_MODEL') || 'llama-3.3-70b-versatile';
+const API_BASE = 'https://api.groq.com/openai/v1';
 
-// Gemini free-tier rate limits (guarded via localStorage)
-const RPM_LIMIT = 15; // requests per minute (free tier)
-const RPD_LIMIT = 150; // requests per day (free tier)
+// Groq free-tier rate limits (guarded via localStorage)
+const RPM_LIMIT = 25; // requests per minute (conservative)
+const RPD_LIMIT = 4000; // requests per day (conservative)
 const WARN_PCT = 0.8; // warn when 80% used
 
 const SUGGESTIONS = [
@@ -35,6 +35,7 @@ const SUGGESTIONS = [
   'Tell me about Ar-Rahman, one of the 99 Names',
   'How much zakat do I owe?',
   'Summarise my week of worship',
+  'Tell me about the history of Masjid al-Aqsa',
 ];
 
 /* ---------------- rate-limit guard ---------------- */
@@ -65,15 +66,15 @@ function checkLimit() {
   const inMinute = u.calls.filter((t) => now - t < 60000).length;
   const inDay = u.daily || 0;
   if (inMinute >= RPM_LIMIT) {
-    return { allow: false, msg: `You've hit the free-tier limit of ${RPM_LIMIT} requests per minute. Wait a moment and try again — or upgrade your Gemini plan for higher limits.` };
+    return { allow: false, msg: `You've hit the rate limit of ${RPM_LIMIT} requests per minute. Wait a moment and try again — or upgrade your Groq plan for higher limits.` };
   }
   if (inDay >= RPD_LIMIT) {
-    return { allow: false, msg: `You've reached the free-tier daily limit of ${RPD_LIMIT} requests. It resets at midnight — or upgrade your Gemini plan.` };
+    return { allow: false, msg: `You've reached the daily limit of ${RPD_LIMIT} requests. It resets at midnight — or upgrade your Groq plan.` };
   }
   if (now - (u.quotaAt || 0) < 60000) {
     return {
       allow: false,
-      msg: "Google's free-tier limit was just reached. Wait about a minute and try again — or upgrade your Gemini plan for higher limits.",
+      msg: "Groq's rate limit was just reached. Wait about a minute and try again — or upgrade your Groq plan for higher limits.",
     };
   }
   if (inMinute >= Math.round(RPM_LIMIT * WARN_PCT)) {
@@ -82,68 +83,97 @@ function checkLimit() {
   return { allow: true, msg: '' };
 }
 
-/* ---------------- Gemini function declarations (app's own APIs) ---------------- */
+/* ---------------- Groq function definitions (app's own APIs) ---------------- */
 const FUNC_TOOLS = [
   {
-    functionDeclarations: [
-      {
-        name: 'searchQuran',
-        description: 'Search the Quran by keyword/topic and return matching verses with references.',
-        parameters: {
-          type: 'OBJECT',
-          properties: { query: { type: 'STRING', description: 'English keyword or topic, e.g. mercy, patience' } },
-          required: ['query'],
+    type: 'function',
+    function: {
+      name: 'searchQuran',
+      description: 'Search the Quran by keyword/topic and return matching verses with references.',
+      parameters: {
+        type: 'object',
+        properties: { query: { type: 'string', description: 'English keyword or topic, e.g. mercy, patience' } },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'searchHadith',
+      description: 'Search authentic hadith collections by keyword and return hadith texts with references.',
+      parameters: {
+        type: 'object',
+        properties: { query: { type: 'string', description: 'English keyword, e.g. kindness, fasting' } },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getTafsir',
+      description: 'Fetch the tafsir (commentary) of one Quranic verse.',
+      parameters: {
+        type: 'object',
+        properties: {
+          surah: { type: 'integer', description: 'Surah number 1-114' },
+          ayah: { type: 'integer', description: 'Ayah number within the surah' },
         },
+        required: ['surah', 'ayah'],
       },
-      {
-        name: 'searchHadith',
-        description: 'Search authentic hadith collections by keyword and return hadith texts with references.',
-        parameters: {
-          type: 'OBJECT',
-          properties: { query: { type: 'STRING', description: 'English keyword, e.g. kindness, fasting' } },
-          required: ['query'],
-        },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getDuas',
+      description: 'Get authentic duas/supplications for a context (morning, evening, travel, eating, etc).',
+      parameters: {
+        type: 'object',
+        properties: { context: { type: 'string', description: 'e.g. morning, evening, travel, eating, sleeping' } },
+        required: ['context'],
       },
-      {
-        name: 'getTafsir',
-        description: 'Fetch the tafsir (commentary) of one Quranic verse.',
-        parameters: {
-          type: 'OBJECT',
-          properties: {
-            surah: { type: 'INTEGER', description: 'Surah number 1-114' },
-            ayah: { type: 'INTEGER', description: 'Ayah number within the surah' },
-          },
-          required: ['surah', 'ayah'],
-        },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getAsma',
+      description: 'Get one or more of the 99 Names of Allah (Asma ul Husna) with their meaning.',
+      parameters: {
+        type: 'object',
+        properties: { query: { type: 'string', description: 'Optional keyword to filter names, e.g. mercy, rahman' } },
       },
-      {
-        name: 'getDuas',
-        description: 'Get authentic duas/supplications for a context (morning, evening, travel, eating, etc).',
-        parameters: {
-          type: 'OBJECT',
-          properties: { context: { type: 'STRING', description: 'e.g. morning, evening, travel, eating, sleeping' } },
-          required: ['context'],
-        },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getZakatInfo',
+      description: 'Get today\'s zakat nisab thresholds (gold & silver) and a quick 2.5% calculation.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getPersonalStats',
+      description: 'Read the user\'s own saved app data: last 7 days of worship activity (adhkar, habits, tasbih, prayers, duas), tasbih totals, sadaqah log and zakat settings. Use when the user asks about their own progress or numbers.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'webSearch',
+      description: 'Search the web (Wikimedia index) for general-knowledge questions the Islamic tools cannot answer — history, geography, current events, biographies. Returns pages with titles and URLs; cite them in your answer.',
+      parameters: {
+        type: 'object',
+        properties: { query: { type: 'string', description: 'Concise search query, e.g. "history of the Ottoman Empire"' } },
+        required: ['query'],
       },
-      {
-        name: 'getAsma',
-        description: 'Get one or more of the 99 Names of Allah (Asma ul Husna) with their meaning.',
-        parameters: {
-          type: 'OBJECT',
-          properties: { query: { type: 'STRING', description: 'Optional keyword to filter names, e.g. mercy, rahman' } },
-        },
-      },
-      {
-        name: 'getZakatInfo',
-        description: 'Get today\'s zakat nisab thresholds (gold & silver) and a quick 2.5% calculation.',
-        parameters: { type: 'OBJECT', properties: {} },
-      },
-      {
-        name: 'getPersonalStats',
-        description: 'Read the user\'s own saved app data: last 7 days of worship activity (adhkar, habits, tasbih, prayers, duas), tasbih totals, sadaqah log and zakat settings. Use when the user asks about their own progress or numbers.',
-        parameters: { type: 'OBJECT', properties: {} },
-      },
-    ],
+    },
   },
 ];
 
@@ -208,6 +238,33 @@ async function runTool(name, args = {}) {
         note: 'Zakat due = 2.5% of net wealth above nisab.',
       };
     }
+    case 'webSearch': {
+      const q = String(args.query || '').trim();
+      if (!q) return { error: 'Empty search query' };
+      const res = await fetch(
+        'https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=5&format=json&origin=*&srsearch=' + encodeURIComponent(q)
+      );
+      const json = await res.json();
+      const hits = ((json.query && json.query.search) || []).slice(0, 3);
+      const out = [];
+      for (const h of hits) {
+        const title = String(h.title || '').trim();
+        if (!title) continue;
+        const page = title.replace(/\s+/g, '_');
+        let snippet = String(h.snippet || '').replace(/<[^>]+>/g, '').slice(0, 320);
+        try {
+          const s = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(page));
+          const d = await s.json();
+          if (d && d.extract) snippet = String(d.extract).slice(0, 400);
+          if (d && d.content_urls && d.content_urls.desktop && d.content_urls.desktop.page) {
+            out.push({ title, url: d.content_urls.desktop.page, snippet });
+            continue;
+          }
+        } catch (e) { /* fall back to search snippet below */ }
+        out.push({ title, url: 'https://en.wikipedia.org/wiki/' + encodeURIComponent(page), snippet });
+      }
+      return out;
+    }
     case 'getPersonalStats': {
       const days = lastNDays(7);
       const total = days.reduce((s, d) => s + d.adhkar + d.habits + d.tasbih + d.prayers + d.dua, 0);
@@ -235,32 +292,37 @@ async function runTool(name, args = {}) {
   }
 }
 
-/* ---------------- Gemini REST call (with function-calling loop) ---------------- */
+/* ---------------- Groq chat-completions call (with function-calling loop) ---------------- */
 const SYSTEM_PROMPT = `You are "Noor AI", the wise and gentle assistant inside the Noor Muslim Companion app.
 You help Muslims with Quran, hadith, tafsir, duas, the 99 Names of Allah, zakat and daily Islamic practice.
 
 How to answer:
 1. FIRST prefer the app's own Islamic knowledge tools (searchQuran, searchHadith, getTafsir, getDuas, getAsma, getZakatInfo) — call them whenever the question touches those topics so answers come from real, authoritative data.
 2. If the user asks about their own saved progress (adhkar, tasbih counts, habits, sadaqah, "my week", "my stats"), call getPersonalStats and base the answer on the real numbers it returns.
-3. If the tools don't cover the question (current events, general knowledge, niche topics), use Google Search grounding and cite the sources you relied on.
+3. If the tools don't cover the question (current events, general knowledge, niche topics), call webSearch and base your answer on the pages it returns — cite them by title or URL. If you are not sure, say so honestly rather than guessing.
 4. Be warm, concise and accurate. For Quran verses include the reference (e.g. Qur'an 2:255). For hadith mention the collection. If a hadith is weak, say so.
 5. Never fabricate a Quranic verse, hadith or personal stat — if you are not certain, use the tools or say you're not sure.
 6. Keep answers scannable for a phone screen: short paragraphs or bullets.
 7. The user may ask in Arabic — answer in the same language.
 8. When commenting on the user's worship progress, be gentle and encouraging — never judgmental.`;
 
-async function callGemini(contents) {
+async function callGroq(messages) {
   const body = {
-    contents,
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    tools: [...FUNC_TOOLS, { googleSearch: {} }],
-    generationConfig: { temperature: 0.6, maxOutputTokens: 1024 },
+    model: MODEL,
+    messages,
+    tools: FUNC_TOOLS,
+    tool_choice: 'auto',
+    temperature: 0.6,
+    max_tokens: 1024,
   };
   let res;
   try {
-    res = await fetch(`${API_BASE}/models/${MODEL}:generateContent?key=${API_KEY}`, {
+    res = await fetch(`${API_BASE}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + API_KEY,
+      },
       body: JSON.stringify(body),
     });
   } catch (e) {
@@ -268,14 +330,14 @@ async function callGemini(contents) {
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = (err.error && err.error.message) || 'HTTP ' + res.status;
-    if (res.status === 429 || /quota|rate limit|RESOURCE_EXHAUSTED|exceeded/i.test(msg)) {
+    const msg = (err.error && (err.error.message || err.error.code)) || 'HTTP ' + res.status;
+    if (res.status === 429 || /rate|quota|limit|exceeded/i.test(msg)) {
       throw new Error('QUOTA');
     }
-    if (/API key|API_KEY|permission|denied/i.test(msg)) {
+    if (res.status === 401 || res.status === 403 || /invalid api key|api key|auth|permission|denied|unauthorized|access denied/i.test(msg)) {
       throw new Error('AUTH');
     }
-    if (/model|not found|not_found/i.test(msg)) {
+    if (res.status === 404 || /model|not found/i.test(msg)) {
       throw new Error('MODEL');
     }
     throw new Error(msg);
@@ -283,41 +345,40 @@ async function callGemini(contents) {
   return res.json();
 }
 
-// Run the conversation until the model stops calling functions.
+// Run the conversation until the model stops calling tools (OpenAI-style loop).
 async function runConversation(userText) {
-  const contents = [{ role: 'user', parts: [{ text: userText }] }];
-  let sources = [];
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: userText },
+  ];
+  const sources = [];
   for (let round = 0; round < 6; round++) {
-    const json = await callGemini(contents);
-    const cand = json.candidates && json.candidates[0];
-    if (!cand || !cand.content) throw new Error('No response from the AI.');
-    const parts = cand.content.parts || [];
+    const json = await callGroq(messages);
+    const msg = json.choices && json.choices[0] && json.choices[0].message;
+    if (!msg) throw new Error('No response from the AI.');
 
-    const calls = parts.filter((p) => p.functionCall);
+    const calls = msg.tool_calls || [];
     if (calls.length) {
-      // Execute each requested tool and feed results back
-      const fnResults = [];
+      // Echo the assistant's tool_calls back, then append each tool result
+      messages.push({ role: 'assistant', content: msg.content || '', tool_calls: calls });
       for (const c of calls) {
+        let out;
         try {
-          const out = await runTool(c.functionCall.name, c.functionCall.args || {});
-          fnResults.push({ name: c.functionCall.name, response: { result: out } });
+          out = await runTool(c.function.name, JSON.parse(c.function.arguments || '{}'));
         } catch (e) {
-          fnResults.push({ name: c.functionCall.name, response: { error: 'Tool failed: ' + e.message } });
+          out = { error: 'Tool failed: ' + e.message };
         }
+        if (c.function.name === 'webSearch' && Array.isArray(out)) {
+          out.filter((r) => r && r.url).forEach((r) => {
+            if (!sources.some((s) => s.uri === r.url)) sources.push({ title: r.title, uri: r.url });
+          });
+        }
+        messages.push({ role: 'tool', tool_call_id: c.id, content: JSON.stringify(out) });
       }
-      contents.push({ role: 'model', parts: calls.map((c) => ({ functionCall: c.functionCall })) });
-      contents.push({ role: 'user', parts: fnResults.map((r) => ({ functionResponse: r })) });
       continue;
     }
 
-    // Grounding metadata = web sources used for the answer
-    const gm = cand.groundingMetadata || {};
-    sources = (gm.groundingChunks || [])
-      .filter((c) => c.web && c.web.uri)
-      .map((c) => ({ title: c.web.title || c.web.uri, uri: c.web.uri }))
-      .slice(0, 4);
-
-    return { text: parts.map((p) => p.text || '').join(''), sources };
+    return { text: msg.content || '', sources };
   }
   throw new Error('Too many tool steps.');
 }
@@ -418,7 +479,7 @@ export function openChat() {
       <div class="ai-welcome">
         <div class="ai-welcome-ico">☪</div>
         <p><b>Assalamu alaikum!</b> I'm Noor AI.</p>
-        <p style="color:var(--muted);font-size:0.78rem">Ask me about the Qur'an, hadith, duas, the 99 Names, zakat — or about your own progress. I'll search reliable sources for you.</p>
+        <p style="color:var(--muted);font-size:0.78rem">Ask me about the Qur'an, hadith, duas, the 99 Names, zakat — or about your own progress. I search the Islamic library and the web to answer.</p>
       </div>
       <div class="ai-sugs" id="aiSugs"></div>
       <div class="ai-msgs" id="aiMsgs"></div>
@@ -525,7 +586,7 @@ async function send() {
     appendMsg({ role: 'user', text });
     appendMsg({
       role: 'bot',
-      text: 'I need my Google AI Studio API key to answer. Add **VITE_GEMINI_API_KEY** in the project Keys tab, then reload the app.',
+      text: 'I need my Groq API key to answer. Add **VITE_GROQ_API_KEY** in the project Keys tab, then reload the app.',
     });
     return;
   }
@@ -557,11 +618,11 @@ async function send() {
     }
     const hint =
       e.message === 'AUTH'
-        ? 'The Gemini API key seems invalid. Check **VITE_GEMINI_API_KEY** in the project Keys tab.'
+        ? 'The Groq API key seems invalid. Check **VITE_GROQ_API_KEY** in the project Keys tab.'
         : e.message === 'MODEL'
-          ? 'The AI model name is unavailable — check VITE_GEMINI_MODEL.'
+          ? 'The AI model name is unavailable — check VITE_GROQ_MODEL.'
           : e.message === 'QUOTA'
-            ? "Google's free-tier limit is momentarily reached. Wait about a minute and try again — or upgrade your Gemini plan for higher limits."
+            ? "Groq's rate limit is momentarily reached. Wait about a minute and try again — or upgrade your Groq plan for higher limits."
             : e.message === 'NET'
               ? 'Could not connect to the AI service. Check your internet connection and try again.'
               : 'I could not reach the AI right now. Check your connection and try again.';
