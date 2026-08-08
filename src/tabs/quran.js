@@ -49,6 +49,19 @@ export function mount(el) {
   );
   renderSurahs(el);
   ensureAudio();
+
+  // Cross-app deep links: open a surah/ayah from Home or the global search
+  window.addEventListener('noor-open-surah', (e) => {
+    const d = (e && e.detail) || {};
+    if (!d.s) return;
+    switchTab('quran').then(() => {
+      openSurah(parseInt(d.s, 10), d.a ? parseInt(d.a, 10) : null);
+    });
+  });
+  window.addEventListener('noor-quran-view', (e) => {
+    const host = document.getElementById('panel-quran');
+    if (host) switchView(host, (e && e.detail && e.detail.view) || 'surahs');
+  });
 }
 
 function switchView(el, view) {
@@ -382,6 +395,7 @@ async function openSurah(number, jumpAyah = null, keepAudio = false) {
     wirePlay();
     wireReciter(host);
     wireBmBtn(host);
+    saveLastReading();
     if (jumpAyah) {
       const idx = current.ayahs.findIndex((a) => a.num === jumpAyah);
       if (idx >= 0) {
@@ -496,6 +510,7 @@ function playFrom(i) {
   playing.active = true;
   playing.index = i;
   lastAyah = ayah.num;
+  saveLastReading();
   audioEl.src = ayah.audio;
   audioEl.play().catch(() => toast('Audio blocked — tap play again', 'error'));
   updatePlayUI();
@@ -580,6 +595,17 @@ async function wireReciter(host) {
       toast('Could not load this reciter — try another', 'error');
       openSurah(num, null, false);
     }
+  });
+}
+
+/* ---------------- continue reading (feeds the Home dashboard) ---------------- */
+function saveLastReading() {
+  if (!current) return;
+  store.set('noor.quran.last', {
+    s: current.number,
+    a: lastAyah || 1,
+    name: current.englishName,
+    ts: Date.now(),
   });
 }
 

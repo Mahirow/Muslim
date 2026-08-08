@@ -451,12 +451,19 @@ function startVoice(input) {
   recognition.start();
 }
 
-export function openChat() {
+export function openChat(initialText) {
   if (panel) {
     panel.classList.toggle('open');
     if (panel.classList.contains('open')) {
       panel.querySelector('#aiInput').focus();
       scrollBottom();
+      if (initialText) {
+        const input = panel.querySelector('#aiInput');
+        if (input) {
+          input.value = initialText;
+          send();
+        }
+      }
     }
     return;
   }
@@ -530,6 +537,15 @@ export function openChat() {
   panel.classList.add('open');
   setTimeout(() => panel.querySelector('#aiInput').focus(), 260);
   scrollBottom();
+  if (initialText) {
+    setTimeout(() => {
+      const input = panel.querySelector('#aiInput');
+      if (input) {
+        input.value = initialText;
+        send();
+      }
+    }, 380);
+  }
 }
 
 function scrollBottom() {

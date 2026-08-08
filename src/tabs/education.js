@@ -49,6 +49,12 @@ export function mount(el) {
     b.addEventListener('click', () => switchView(el, b.dataset.view))
   );
   renderLearn(el);
+
+  // Cross-app deep links: jump to a Learn sub-view from Home / Search
+  window.addEventListener('noor-learn-view', (e) => {
+    const v = (e && e.detail && e.detail.view) || 'learn';
+    switchView(el, v);
+  });
 }
 
 function switchView(el, view) {

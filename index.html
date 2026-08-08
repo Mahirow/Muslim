@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
-    <meta name="theme-color" content="#064e3b" />
+    <meta name="theme-color" content="#1e5340" />
     <meta name="description" content="Noor — your all-in-one Muslim companion. Read the Quran with audio & tafsir, practice Hifz, prayer times & Qibla, adhkar, digital tasbih, hadith library, 99 Names of Allah, zakat calculator and more — works offline." />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Noor" />
@@ -46,7 +46,7 @@
       "operatingSystem": "Any",
       "browserRequirements": "Requires JavaScript. Requires HTML5.",
       "description": "All-in-one Muslim companion: Quran with audio & tafsir, Hifz practice with voice testing, prayer times & Qibla, adhkar, digital tasbih, hadith library, 99 Names of Allah, duas, zakat calculator, Islamic finance, baby names and Ramadan calendar. Works offline as a PWA.",
-      "featureList": "Quran reading & listening, Hifz voice tester, prayer times & Qibla compass, adhkar checklist, tasbih counter, hadith library, 99 Names of Allah, duas, zakat calculator, sadaqah tracker, inheritance estimator, baby names, halal E-number checker, dark mode, offline PWA, cloud account backup",
+      "featureList": "Quran reading & listening, Hifz voice tester, prayer times & Qibla compass, adhkar checklist, tasbih counter, hadith library, 99 Names of Allah, duas, zakat calculator, sadaqah tracker, inheritance estimator, halal E-number checker, dark mode, offline PWA, cloud account backup",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -58,130 +58,113 @@
     <style>
       /* ============================================================
          CRITICAL INLINE CSS — styled first paint while the app loads.
-         Literal colors only (the real stylesheet adds themes later).
+         Calm, premium: forest green · muted gold · cream.
+         The full design system (src/design-system.css) refines this.
          ============================================================ */
       * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
       html { scroll-behavior: smooth; }
       body {
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: #08352a radial-gradient(1200px 700px at 80% -10%, rgba(217, 119, 6, 0.14), transparent 60%),
-                    radial-gradient(900px 600px at -10% 110%, rgba(16, 185, 129, 0.16), transparent 55%);
-        background-attachment: fixed;
-        color: #1c1917;
-        line-height: 1.55;
+        background: #f4f2ec;
+        color: #24312c;
+        line-height: 1.6;
         min-height: 100dvh;
       }
-      html[data-theme="dark"] body {
-        background: #02140f radial-gradient(1200px 700px at 80% -10%, rgba(217, 119, 6, 0.12), transparent 60%),
-                    radial-gradient(900px 600px at -10% 110%, rgba(16, 185, 129, 0.12), transparent 55%);
-        color: #e7e5e4;
-      }
+      html[data-theme="dark"] body { background: #0d1512; color: #e7ede9; }
       #app {
         position: relative;
-        max-width: 480px;
+        max-width: 520px;
         margin: 0 auto;
         min-height: 100dvh;
-        background: #f4fbf7;
-        box-shadow: 0 0 60px rgba(2, 44, 34, 0.45);
-        overflow: hidden;
+        background: #f8f7f2;
       }
-      html[data-theme="dark"] #app { background: #05231b; box-shadow: 0 0 60px rgba(0, 0, 0, 0.6); }
+      html[data-theme="dark"] #app { background: #101915; }
       .app-header {
         position: sticky;
         top: 0;
         z-index: 50;
-        background: linear-gradient(160deg, #065f46, #064e3b 60%, #022c22);
+        background: linear-gradient(160deg, #1e5340, #173f32 60%, #12312a);
         color: #fff;
-        padding: calc(10px + env(safe-area-inset-top)) 18px 0;
-        box-shadow: 0 6px 20px -8px rgba(2, 44, 34, 0.6);
+        padding: calc(10px + env(safe-area-inset-top)) 16px 0;
       }
       .header-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
       .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
       .brand-logo {
         display: grid; place-items: center;
-        width: 42px; height: 42px; border-radius: 14px;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
-        border: 1px solid rgba(251, 191, 36, 0.4);
-        color: #fbbf24;
+        width: 38px; height: 38px; border-radius: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #d9b678;
         flex: none;
       }
-      .brand-name { font-size: 1.28rem; font-weight: 800; letter-spacing: 0.2px; line-height: 1.1; color: #fff; }
-      .brand-ar { color: #fbbf24; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; font-weight: 700; }
-      .brand-tag { font-size: 0.68rem; color: #a7f3d0; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 2px; }
+      .brand-name { font-size: 1.15rem; font-weight: 700; letter-spacing: 0; line-height: 1.1; color: #fff; }
+      .brand-ar { color: #d9b678; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; font-weight: 700; }
+      .brand-tag { font-size: 0.62rem; color: rgba(231, 244, 236, 0.72); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px; }
       .header-right { display: flex; align-items: center; gap: 8px; flex: none; }
-      .acct-btn {
+      .icon-btn {
         position: relative;
-        width: 38px; height: 38px; border-radius: 50%;
-        border: 1.5px solid rgba(251, 191, 36, 0.35);
-        background: rgba(255, 255, 255, 0.12);
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
         display: inline-flex; align-items: center; justify-content: center;
-        cursor: pointer; flex: none; color: #fde68a;
+        cursor: pointer; flex: none; color: #e9f3ec;
       }
-      .acct-initial { font-size: 0.92rem; font-weight: 700; line-height: 1; }
+      .acct-initial { font-size: 0.88rem; font-weight: 700; line-height: 1; color: #d9b678; }
       .acct-dot {
         position: absolute; right: -1px; bottom: -1px;
-        width: 11px; height: 11px; border-radius: 50%;
-        background: #78716c; border: 2px solid #f4fbf7;
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #7c8a83; border: 2px solid #173f32;
       }
-      .acct-dot.on { background: #10b981; }
-      .theme-btn {
-        flex: none;
-        width: 38px; height: 38px; border-radius: 12px;
-        display: grid; place-items: center;
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(251, 191, 36, 0.35);
-        color: #fde68a; cursor: pointer;
-      }
+      .acct-dot.on { background: #7fd1a0; }
       .theme-btn .ico-sun { display: none; }
       html[data-theme="dark"] .theme-btn .ico-sun { display: block; }
       html[data-theme="dark"] .theme-btn .ico-moon { display: none; }
       .hijri-chip {
-        font-size: 0.7rem;
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(251, 191, 36, 0.35);
-        color: #fde68a;
+        font-size: 0.68rem;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: #e9f3ec;
         padding: 5px 10px;
         border-radius: 999px;
         white-space: nowrap;
-        max-width: 46%;
+        max-width: 44%;
         overflow: hidden; text-overflow: ellipsis;
       }
       .bismillah {
-        margin-top: 10px; text-align: center;
+        margin-top: 8px; text-align: center;
         font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif;
-        font-size: 1.16rem; color: #fde68a;
-        padding: 9px 0 11px; letter-spacing: 0.02em;
+        font-size: 1.04rem; color: rgba(233, 243, 236, 0.82);
+        padding: 8px 0 10px;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
-      #content { padding: 14px 14px calc(66px + 30px + env(safe-area-inset-bottom)); }
+      #content { padding: 16px 16px calc(62px + 32px + env(safe-area-inset-bottom)); }
       .bottom-nav {
         position: fixed;
         bottom: 0; left: 50%; transform: translateX(-50%);
-        width: 100%; max-width: 480px; z-index: 60;
+        width: 100%; max-width: 520px; z-index: 60;
         display: flex;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(10px);
-        border-top: 1px solid #e7e5e4;
+        background: rgba(255, 255, 255, 0.98);
+        border-top: 1px solid #e6e3d9;
         padding-bottom: env(safe-area-inset-bottom);
-        box-shadow: 0 -8px 24px -12px rgba(2, 44, 34, 0.25);
       }
-      html[data-theme="dark"] .bottom-nav { background: rgba(8, 40, 31, 0.96); border-top-color: #164a39; }
+      html[data-theme="dark"] .bottom-nav { background: rgba(15, 26, 21, 0.98); border-top-color: #24362d; }
       .nav-btn {
         flex: 1;
         display: flex; flex-direction: column; align-items: center; gap: 3px;
-        padding: 9px 2px 8px;
+        padding: 8px 2px;
         background: none; border: none; cursor: pointer;
-        color: #78716c; font-family: inherit;
+        color: #7b8981; font-family: inherit; min-height: 56px;
       }
-      html[data-theme="dark"] .nav-btn { color: #93a89d; }
-      .nav-icon { display: grid; place-items: center; width: 46px; height: 30px; border-radius: 999px; }
+      html[data-theme="dark"] .nav-btn { color: #7f9187; }
+      .nav-icon { display: grid; place-items: center; width: 44px; height: 28px; border-radius: 999px; }
       .nav-label { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.02em; }
-      .nav-btn.active { color: #022c22; }
-      .nav-btn.active .nav-icon { background: #fef3c7; color: #b45309; }
-      .nav-btn.active .nav-label { color: #064e3b; font-weight: 700; }
-      html[data-theme="dark"] .nav-btn.active { color: #d1fae5; }
-      html[data-theme="dark"] .nav-btn.active .nav-icon { background: rgba(245, 158, 11, 0.14); color: #fbbf24; }
-      html[data-theme="dark"] .nav-btn.active .nav-label { color: #7dd3a8; }
+      .nav-btn.active { color: #1e5340; }
+      .nav-btn.active .nav-icon { background: #e9f1ea; color: #1e5340; }
+      .nav-btn.active .nav-label { color: #1e5340; font-weight: 700; }
+      html[data-theme="dark"] .nav-btn.active { color: #e7ede9; }
+      html[data-theme="dark"] .nav-btn.active .nav-icon { background: rgba(63, 138, 109, 0.16); color: #3f8a6d; }
+      html[data-theme="dark"] .nav-btn.active .nav-label { color: #3f8a6d; }
 
       /* ---- boot splash ---- */
       .boot-splash {
@@ -195,39 +178,39 @@
       }
       .boot-logo {
         width: 84px; height: 84px;
-        border-radius: 50%;
-        background: linear-gradient(160deg, #065f46, #064e3b 60%, #022c22);
+        border-radius: 22px;
+        background: linear-gradient(160deg, #1e5340, #12312a);
         display: grid; place-items: center;
-        color: #ffd27a;
-        box-shadow: 0 14px 34px -12px rgba(6, 78, 59, 0.65);
+        color: #d9b678;
+        box-shadow: 0 14px 34px -14px rgba(18, 58, 44, 0.5);
         animation: bootPulse 1.6s ease-in-out infinite;
       }
       @keyframes bootPulse {
         0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.06); }
+        50% { transform: scale(1.05); }
       }
-      .boot-name { font-size: 1.5rem; font-weight: 800; color: #064e3b; }
-      html[data-theme="dark"] .boot-name { color: #e7e5e4; }
-      .boot-name span { color: #b45309; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; }
+      .boot-name { font-size: 1.4rem; font-weight: 800; color: #1e5340; }
+      html[data-theme="dark"] .boot-name { color: #e7ede9; }
+      .boot-name span { color: #a87c33; font-family: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif; }
       .boot-bar {
         width: 150px; height: 4px;
         border-radius: 999px;
-        background: rgba(16, 185, 129, 0.18);
+        background: #e9f1ea;
         overflow: hidden;
       }
       .boot-bar i {
         display: block; height: 100%;
         width: 40%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #10b981, #d97706);
+        background: #2b6a52;
         animation: bootSlide 1.1s ease-in-out infinite;
       }
       @keyframes bootSlide {
         0% { transform: translateX(-110%); }
         100% { transform: translateX(280%); }
       }
-      .boot-sub { font-size: 0.78rem; color: #78716c; letter-spacing: 0.04em; }
-      html[data-theme="dark"] .boot-sub { color: #93a89d; }
+      .boot-sub { font-size: 0.76rem; color: #7b8981; letter-spacing: 0.04em; }
+      html[data-theme="dark"] .boot-sub { color: #7f9187; }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
     </style>
@@ -236,8 +219,11 @@
       (function () {
         try {
           var t = JSON.parse(localStorage.getItem('noor.theme'));
-          if (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
-          if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          var dark = t === 'dark' || (t === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ||
+                     (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+          var f = JSON.parse(localStorage.getItem('noor.font'));
+          if (f && f !== 'normal') document.documentElement.setAttribute('data-font', f);
         } catch (e) { /* noop */ }
       })();
     </script>
@@ -248,11 +234,9 @@
         <div class="header-top">
           <div class="brand">
             <span class="brand-logo" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12a10 10 0 1 0 20 0A10 10 0 0 0 2 12z" opacity="0" />
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 21a9 9 0 1 1 6.4-15.3" />
                 <path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none" />
-                <path d="M4 20.5 20 3.5" stroke-dasharray="2 3" />
               </svg>
             </span>
             <div class="brand-text">
@@ -261,13 +245,19 @@
             </div>
           </div>
           <div class="header-right">
-            <button class="acct-btn" id="acctBtn" aria-label="Account and cloud backup">
+            <button class="icon-btn" id="searchBtn" aria-label="Search the Quran, hadith, duas and more">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </button>
+            <button class="acct-btn icon-btn" id="acctBtn" aria-label="Account and cloud backup">
               <span class="acct-initial" id="acctInitial">☪</span>
               <span class="acct-dot" id="acctDot"></span>
             </button>
-            <button class="theme-btn" id="themeToggle" aria-label="Toggle dark mode">
+            <button class="theme-btn icon-btn" id="themeToggle" aria-label="Toggle dark mode">
               <svg class="ico-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
               <svg class="ico-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3 17 7M7 17l-1.7 1.7"/></svg>
+            </button>
+            <button class="icon-btn" id="moreBtn" aria-label="More options — saved, settings, about">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>
             </button>
             <span class="hijri-chip" id="hijriDate" title="Today's Islamic date">…</span>
           </div>
@@ -278,11 +268,15 @@
             <b>Install Noor</b>
             <span>Free · private · works offline</span>
           </div>
-          <button class="btn btn-gold btn-sm" id="installTopBtn">📲 Install</button>
+          <button class="btn btn-gold btn-sm" id="installTopBtn">Install</button>
         </div>
       </header>
 
       <main id="content">
+        <div class="offline-banner" id="offlineBanner" hidden>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a14 14 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a6 6 0 0 1 7 0"/><path d="M12 20h.01"/></svg>
+          <span>You're offline — your downloaded content is still available.</span>
+        </div>
         <div class="boot-splash" id="bootSplash">
           <div class="boot-logo" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -299,7 +293,7 @@
       <nav class="bottom-nav" aria-label="Main navigation">
         <button class="nav-btn" data-tab="home" aria-label="Home">
           <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 10.5 12 3l9 7.5" />
               <path d="M5 9.5V21h5v-6h4v6h5V9.5" />
             </svg>
@@ -308,7 +302,7 @@
         </button>
         <button class="nav-btn" data-tab="quran" aria-label="Quran">
           <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 6c-2-1.6-4.5-2.2-7-2.2v15c2.5 0 5 .6 7 2.2 2-1.6 4.5-2.2 7-2.2v-15c-2.5 0-5 .6-7 2.2z" />
               <path d="M12 6v15" />
             </svg>
@@ -317,7 +311,7 @@
         </button>
         <button class="nav-btn" data-tab="prayer" aria-label="Prayer">
           <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="9" />
               <path d="m15.5 8.5-1.6 4.4-4.4 1.6 1.6-4.4z" />
             </svg>
@@ -326,7 +320,7 @@
         </button>
         <button class="nav-btn" data-tab="finance" aria-label="Finance">
           <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2.5" y="6" width="19" height="13" rx="2.5" />
               <path d="M2.5 10.5h19" />
               <circle cx="16.5" cy="14.8" r="1.3" fill="currentColor" stroke="none" />
@@ -337,7 +331,7 @@
         </button>
         <button class="nav-btn" data-tab="education" aria-label="Learn">
           <span class="nav-icon">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2.5 9.5 12 4.5l9.5 5L12 14.5z" />
               <path d="M6.5 11.8v4.5c0 1.4 2.5 3 5.5 3s5.5-1.6 5.5-3v-4.5" />
               <path d="M21.5 9.5v5" />
@@ -348,16 +342,16 @@
       </nav>
       <button class="ai-fab" id="aiFab" aria-label="Chat with Noor AI">
         <span class="ai-fab-pulse"></span>
-        <svg class="ai-fab-ico" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z"/></svg>
-        <svg class="ai-fab-x" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        <svg class="ai-fab-ico" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z"/></svg>
+        <svg class="ai-fab-x" viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
     <script type="module" src="/src/main.js"></script>
     <noscript>
-      <div style="padding:30px 20px;font-family:system-ui,sans-serif;text-align:center;color:#064e3b;background:#ecfdf5;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+      <div style="padding:30px 20px;font-family:system-ui,sans-serif;text-align:center;color:#1e5340;background:#f0f5f0;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
         <h1 style="font-size:1.5rem;margin:0">Noor — Muslim Companion</h1>
-        <p style="max-width:420px;color:#44403c">Quran with audio & tafsir, prayer times & Qibla, adhkar, tasbih, hadith, 99 Names of Allah, zakat and more.</p>
-        <p style="font-size:0.85rem;color:#78716c">Please enable JavaScript to use the app.</p>
+        <p style="max-width:420px;color:#47584f">Quran with audio & tafsir, prayer times & Qibla, adhkar, tasbih, hadith, 99 Names of Allah, zakat and more.</p>
+        <p style="font-size:0.85rem;color:#7b8981">Please enable JavaScript to use the app.</p>
       </div>
     </noscript>
   </body>

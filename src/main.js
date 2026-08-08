@@ -6,6 +6,7 @@
 // ============================================================
 import './styles.css';
 import './features-round2.css';
+import './design-system.css';
 import { store, hijriToday, gregorianToday, toast } from './lib.js';
 import { initAuth } from './auth.js';
 
@@ -20,6 +21,7 @@ const TABS = {
 };
 const TAB_KEY = 'noor.tab';
 const THEME_KEY = 'noor.theme';
+const FONT_KEY = 'noor.font';
 
 const content = document.getElementById('content');
 const mounted = {};
@@ -72,6 +74,26 @@ document.querySelectorAll('.nav-btn').forEach((btn) => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+// Global search — lazy overlay across the whole app
+document.getElementById('searchBtn').addEventListener('click', async () => {
+  try {
+    const search = await import('./search.js');
+    search.openSearch();
+  } catch (e) {
+    console.error('Search failed to load:', e);
+  }
+});
+
+// More — settings / saved / about sheet
+document.getElementById('moreBtn').addEventListener('click', async () => {
+  try {
+    const more = await import('./more.js');
+    more.openMore();
+  } catch (e) {
+    console.error('More sheet failed to load:', e);
+  }
+});
+
 // Noor AI — floating chat button (lazy-loads the chat chunk on first tap)
 document.getElementById('aiFab').addEventListener('click', async () => {
   const fab = document.getElementById('aiFab');
@@ -86,37 +108,62 @@ document.getElementById('aiFab').addEventListener('click', async () => {
 });
 
 // ============================================================
-//  Dark mode — persisted theme with system-preference default
+//  Theme — light / dark / system, persisted
 // ============================================================
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
+const mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+function applyTheme(mode) {
+  const dark = mode === 'dark' || (mode === 'system' && !!mql && mql.matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = theme === 'dark' ? '#08352a' : '#064e3b';
+  if (meta) meta.content = dark ? '#0d1512' : '#1e5340';
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.classList.toggle('is-dark', dark);
+}
+
+/** Set the theme mode ('light' | 'dark' | 'system') and persist it. */
+export function setThemeMode(mode) {
+  store.set(THEME_KEY, mode);
+  applyTheme(mode);
 }
 
 function initTheme() {
   let theme = store.get(THEME_KEY, null);
-  if (!theme) {
-    theme =
-      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
-  }
+  if (!theme) theme = mql ? 'system' : 'light';
   applyTheme(theme);
   const btn = document.getElementById('themeToggle');
   if (btn) {
-    const sync = () => btn.classList.toggle('is-dark', document.documentElement.getAttribute('data-theme') === 'dark');
-    sync();
     btn.addEventListener('click', () => {
-      const next =
-        document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      store.set(THEME_KEY, next);
-      applyTheme(next);
-      sync();
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      setThemeMode(cur === 'dark' ? 'light' : 'dark');
     });
   }
+  if (mql) mql.addEventListener('change', () => applyTheme(store.get(THEME_KEY, 'system')));
 }
 initTheme();
+
+// ============================================================
+//  Font size — small / normal / large, applied at document root
+// ============================================================
+function applyFont(size) {
+  document.documentElement.setAttribute('data-font', size || 'normal');
+}
+export function setFontSize(size) {
+  store.set(FONT_KEY, size);
+  applyFont(size);
+}
+applyFont(store.get(FONT_KEY, 'normal'));
+
+// ============================================================
+//  Offline banner — intentional offline state
+// ============================================================
+function renderOffline() {
+  const b = document.getElementById('offlineBanner');
+  if (b) b.hidden = navigator.onLine !== false;
+}
+window.addEventListener('online', renderOffline);
+window.addEventListener('offline', renderOffline);
+renderOffline();
 
 // Cloud account + sync (lazy-loads Firebase only if a session exists)
 initAuth();

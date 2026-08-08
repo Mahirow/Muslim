@@ -1,7 +1,7 @@
 // ============================================================
 //  TAB 1 — HOME: Daily basics, habits & spiritual tools
 // ============================================================
-import { store, vibrate, toast, successSound, playTone, dayOfYear, esc, trackDay, lastNDays, hijriToday, gregorianToday } from '../lib.js';
+import { store, vibrate, toast, successSound, playTone, dayOfYear, esc, trackDay, lastNDays, todayKey, hijriToday, gregorianToday } from '../lib.js';
 import { promptInstall, switchTab } from '../main.js';
 import { DAILY_QUOTES, ADHKAR_MORNING, ADHKAR_EVENING, SUNNAH_HABITS, EMOTION_REMEDIES, DHIKR_LIST } from '../data.js';
 import { randomAyah, randomHadith } from '../ummah-api.js';
@@ -28,34 +28,59 @@ let emotions = {};
 
 export function mount(el) {
   el.innerHTML = `
-    <div class="hero" data-view="today">
-      <div class="hero-top">
-        <span class="hero-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none"/></svg>
-        </span>
-        <div class="hero-brand">
-          <h2 class="hero-title">Noor <span>نور</span></h2>
-          <p class="hero-tag">Your Private, Ad-Free Islamic Companion</p>
+    <div class="home-greet view-group" data-view="today">
+      <div class="greet-row">
+        <div>
+          <p class="greet-hi">As-salāmu ʿalaykum</p>
+          <h2 class="greet-name" id="greetName">Good morning</h2>
         </div>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 6.4-15.3"/><path d="M15 3l.9 2.1L18 6l-2.1.9L15 9l-.9-2.1L12 6l2.1-.9z" fill="currentColor" stroke="none"/></svg>
+        </span>
       </div>
-      <p class="hero-sub">Track morning &amp; evening Adhkar, build Sunnah habits, and elevate your spiritual life — offline, completely private, zero ads.</p>
-      <div class="hero-cta">
-        <button class="btn btn-gold" id="heroInstall">📲 Install App</button>
-        <button class="btn btn-ghost" id="heroExplore">⬇ Explore Features</button>
-      </div>
-      <div class="hero-meta">
-        <span class="hero-date">☪ <span id="heroHijri"></span></span>
-        <span class="hero-privacy">🔒 100% private · 🚫 no ads</span>
-      </div>
+      <p class="greet-date" id="greetDate">—</p>
+      <p class="greet-loc" id="greetLoc" hidden></p>
     </div>
 
     <div class="seg seg-scroll">
-      <button class="seg-btn active" data-view="today">☀️ Today</button>
-      <button class="seg-btn" data-view="adhkar">📿 Adhkar</button>
-      <button class="seg-btn" data-view="tasbih">🔢 Tasbih</button>
-      <button class="seg-btn" data-view="habits">✅ Sunnah Habits</button>
-      <button class="seg-btn" data-view="remedy">💚 Spiritual Lows</button>
-      <button class="seg-btn" data-view="week">📊 My Week</button>
+      <button class="seg-btn active" data-view="today">Today</button>
+      <button class="seg-btn" data-view="adhkar">Adhkar</button>
+      <button class="seg-btn" data-view="tasbih">Tasbih</button>
+      <button class="seg-btn" data-view="habits">Habits</button>
+      <button class="seg-btn" data-view="remedy">Remedy</button>
+      <button class="seg-btn" data-view="week">My Week</button>
+    </div>
+
+    <section class="np-card view-group" data-view="today">
+      <button class="np-inner" id="npCard">
+        <span class="np-main">
+          <span class="np-label">Next prayer</span>
+          <span class="np-name" id="npName">—</span>
+          <span class="np-time" id="npTime">--:--</span>
+        </span>
+        <span class="np-count" id="npCount">—</span>
+        <span class="np-chev" aria-hidden="true">›</span>
+      </button>
+      <div class="worship-row" id="worshipRow"></div>
+    </section>
+
+    <section class="continue-card view-group" data-view="today">
+      <span class="sec-label">Continue reading</span>
+      <button class="cont-main" id="continueBtn">
+        <span class="cont-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.6-4.5-2.2-7-2.2v15c2.5 0 5 .6 7 2.2 2-1.6 4.5-2.2 7-2.2v-15c-2.5 0-5 .6-7 2.2z"/><path d="M12 6v15"/></svg>
+        </span>
+        <span class="cont-body">
+          <span class="cont-title" id="contTitle">No reading yet</span>
+          <span class="cont-sub" id="contSub">Open the Qur'an and begin</span>
+        </span>
+        <span class="cont-arrow" aria-hidden="true">›</span>
+      </button>
+    </section>
+
+    <div class="section-head view-group" data-view="today">
+      <h2 class="section-title">Today's reflection</h2>
+      <span class="section-sub">Qur'an · hadith · dua</span>
     </div>
 
     <div class="card quote-card" data-view="today">
@@ -79,50 +104,37 @@ export function mount(el) {
       </div>
     </div>
 
-    <div class="card" id="featuresCard" data-view="today">
-      <div class="card-head">
-        <span class="card-ico gold">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>
-        </span>
-        <div><div class="card-title">What's Inside Noor</div><div class="card-sub">Tap any tile to jump straight into it</div></div>
-      </div>
-      <div class="feature-grid">
-        <button class="feature-tile" data-tab="quran">
-          <span class="ft-ico">📖</span>
-          <b>Quran &amp; Hifz</b>
-          <span>114 surahs · audio · tafsir · voice hifz tester</span>
-        </button>
-        <button class="feature-tile" data-tab="prayer">
-          <span class="ft-ico">🕌</span>
-          <b>Prayer &amp; Mosque</b>
-          <span>Auto times · Qibla compass · nearby mosques</span>
-        </button>
-        <button class="feature-tile" data-tab="finance">
-          <span class="ft-ico">💰</span>
-          <b>Finance &amp; Zakat</b>
-          <span>Zakat · sadaqah · inheritance · halal check</span>
-        </button>
-        <button class="feature-tile" data-tab="education">
-          <span class="ft-ico">📚</span>
-          <b>Learn &amp; Duas</b>
-          <span>Hadith · 99 Names · duas · events · more</span>
-        </button>
-      </div>
+    <div class="section-head view-group" data-view="today">
+      <h2 class="section-title">Quick actions</h2>
+      <span class="section-sub">Jump straight in</span>
+    </div>
+    <div class="quick-grid view-group" data-view="today">
+      <button class="quick-tile" data-act="quran">
+        <span class="qt-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-1.6-4.5-2.2-7-2.2v15c2.5 0 5 .6 7 2.2 2-1.6 4.5-2.2 7-2.2v-15c-2.5 0-5 .6-7 2.2z"/><path d="M12 6v15"/></svg></span>
+        <span class="qt-label">Qur'an</span>
+        <span class="qt-sub">Read · listen</span>
+      </button>
+      <button class="quick-tile" data-act="duas">
+        <span class="qt-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.5-7.5-10a4 4 0 0 1 7.5-1.8A4 4 0 0 1 19.5 10c0 5.5-7.5 10-7.5 10z"/></svg></span>
+        <span class="qt-label">Duas</span>
+        <span class="qt-sub">Morning · travel</span>
+      </button>
+      <button class="quick-tile" data-act="prayer">
+        <span class="qt-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <span class="qt-label">Prayer</span>
+        <span class="qt-sub">Times · alerts</span>
+      </button>
+      <button class="quick-tile" data-act="qibla">
+        <span class="qt-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-1.6 4.4-4.4 1.6 1.6-4.4z"/></svg></span>
+        <span class="qt-label">Qibla</span>
+        <span class="qt-sub">Find direction</span>
+      </button>
     </div>
 
-    <div class="card trust-card" data-view="today">
-      <div class="card-head">
-        <span class="card-ico gold">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-        </span>
-        <div><div class="card-title">Authentic &amp; Transparent</div><div class="card-sub">Where every word comes from — and what we do with your data</div></div>
-      </div>
-      <div class="trust-list">
-        <div class="trust-item"><b>📖 Qur'an text &amp; audio</b><span>Official public APIs — Quran.com &amp; AlQuran.Cloud. Every ayah shows its surah:ayah reference.</span></div>
-        <div class="trust-item"><b>📜 Hadith</b><span>Graded collections — Bukhari, Muslim, Abu Dawud, Tirmidhi, Ibn Majah &amp; more. Source and grade shown on every hadith.</span></div>
-        <div class="trust-item"><b>🕌 Prayer times</b><span>Standard calculation methods (MWL, ISNA, Egypt, Makkah…) — you pick your locality's method.</span></div>
-        <div class="trust-item"><b>🔒 Your privacy</b><span>No account needed. Everything stays on your device — cloud backup only if you sign in.</span></div>
-      </div>
+    <div class="journey-card view-group" data-view="today">
+      <span class="sec-label">My day</span>
+      <div class="journey-stats" id="journeyStats"></div>
+      <p class="journey-note" id="journeyNote"></p>
     </div>
 
     <div class="card" data-view="adhkar">
@@ -226,26 +238,46 @@ export function mount(el) {
   el.querySelector('#qShare').addEventListener('click', shareQuoteCard);
   el.querySelector('#qShareHead').addEventListener('click', shareQuoteCard);
 
-  // ---- hero CTA ----
-  const heroHijri = el.querySelector('#heroHijri');
-  if (heroHijri) heroHijri.textContent = hijriToday() || gregorianToday();
-  el.querySelector('#heroInstall').addEventListener('click', async () => {
-    if (window.noorInstallable === true) {
-      const ok = await promptInstall();
-      if (!ok) toast('Install prompt not available on this browser yet — try Chrome or Edge', 'info');
-      return;
+  // ---- dashboard: greeting, next prayer, continue, journey ----
+  const greetName = el.querySelector('#greetName');
+  if (greetName) {
+    const h = new Date().getHours();
+    greetName.textContent = h < 5 ? 'Peaceful night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Peaceful night';
+  }
+  const greetDate = el.querySelector('#greetDate');
+  if (greetDate) greetDate.textContent = (hijriToday() || '') + ' · ' + (gregorianToday() || '');
+  const greetLoc = el.querySelector('#greetLoc');
+  const auto = store.get('noor.salah.auto', null);
+  const place = auto && (auto.place || (auto.city ? auto.city + (auto.country ? ', ' + auto.country : '') : ''));
+  if (place && greetLoc) {
+    greetLoc.hidden = false;
+    greetLoc.textContent = '📍 ' + place;
+  }
+
+  renderNextPrayer(el, store.get('noor.salah.times', {}));
+  setInterval(() => renderNextPrayer(el, store.get('noor.salah.times', {})), 30000);
+
+  el.querySelector('#npCard').addEventListener('click', () => switchTab('prayer'));
+  el.querySelector('#continueBtn').addEventListener('click', () => {
+    const last = store.get('noor.quran.last', null);
+    switchTab('quran');
+    if (last && last.s) {
+      window.dispatchEvent(new CustomEvent('noor-open-surah', { detail: { s: last.s, a: last.a || 1 } }));
     }
-    const card = el.querySelector('#installCard');
-    if (card && !card.hidden) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    else toast('Tap the browser menu ⋮ → “Add to Home Screen”', 'info');
   });
-  el.querySelector('#heroExplore').addEventListener('click', () => {
-    const f = el.querySelector('#featuresCard');
-    if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  el.querySelectorAll('.feature-tile').forEach((t) =>
-    t.addEventListener('click', () => switchTab(t.dataset.tab))
+  el.querySelectorAll('.quick-tile').forEach((t) =>
+    t.addEventListener('click', () => {
+      const act = t.dataset.act;
+      if (act === 'duas') {
+        switchTab('education');
+        window.dispatchEvent(new CustomEvent('noor-learn-view', { detail: { view: 'duas' } }));
+      } else {
+        switchTab(act);
+      }
+    })
   );
+  renderContinue(el);
+  renderJourney(el);
 
   // ---- adhkar ----
   el.querySelector('#adhM').addEventListener('click', () => setAdhView('m', el));
@@ -326,7 +358,7 @@ export function mount(el) {
 
   // ---- segment tabs (Today / Adhkar / Tasbih / Habits / Remedy / Week) ----
   const showGroup = (view) => {
-    el.querySelectorAll('.card[data-view], .hero[data-view]').forEach((c) => {
+    el.querySelectorAll('.view-group[data-view], .card[data-view], .footer-note[data-view]').forEach((c) => {
       c.hidden = c.dataset.view !== view;
     });
     el.querySelectorAll('.footer-note[data-view]').forEach((f) => {
@@ -344,6 +376,89 @@ export function mount(el) {
   // ---- install card (runs after showGroup so it keeps control of its own visibility) ----
   renderInstallCard(el);
   window.addEventListener('noor-install-ready', () => renderInstallCard(el));
+}
+
+/* ---------------- home dashboard ---------------- */
+const PRAYER_ORDER = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+const PRAYER_LABEL = { fajr: 'Fajr', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' };
+
+function parseHM(s) {
+  const [h = 0, m = 0] = String(s || '').split(':').map(Number);
+  return h * 60 + m;
+}
+function fmtHM(min) {
+  const h = Math.floor(min / 60) % 24;
+  const m = Math.floor(min % 60);
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+function fmtCountdown(min) {
+  if (min < 0) min = 0;
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  if (h >= 24) return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+function nextPrayerInfo(times) {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  const entries = PRAYER_ORDER.map((k) => ({ k, label: PRAYER_LABEL[k], t: parseHM(times[k]) }));
+  const up = entries.find((e) => e.t > nowMin);
+  if (up) return { ...up, when: up.t - nowMin, tomorrow: false };
+  const f = entries[0];
+  return { ...f, when: f.t + 1440 - nowMin, tomorrow: true };
+}
+function renderNextPrayer(el, times) {
+  const np = nextPrayerInfo(times);
+  const n = el.querySelector('#npName');
+  const t = el.querySelector('#npTime');
+  const c = el.querySelector('#npCount');
+  if (n) n.textContent = np.label;
+  if (t) t.textContent = fmtHM(np.t);
+  if (c) c.textContent = np.tomorrow ? 'tomorrow' : fmtCountdown(np.when);
+  const row = el.querySelector('#worshipRow');
+  if (row) {
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    row.innerHTML = PRAYER_ORDER.map((k) => {
+      const tMin = parseHM(times[k]);
+      const isNext = !np.tomorrow && np.k === k;
+      const past = !np.tomorrow && k !== np.k && tMin <= nowMin;
+      return `<span class="worship-item ${isNext ? 'next' : past ? 'past' : ''}">
+        <span class="w-name">${PRAYER_LABEL[k]}</span><span class="w-time">${fmtHM(tMin)}</span></span>`;
+    }).join('');
+  }
+}
+function renderContinue(el) {
+  const last = store.get('noor.quran.last', null);
+  const title = el.querySelector('#contTitle');
+  const sub = el.querySelector('#contSub');
+  if (last && last.s) {
+    if (title) title.textContent = 'Surah ' + (last.name || last.s);
+    if (sub) sub.textContent = 'Continue at ayah ' + (last.a || 1);
+  } else {
+    if (title) title.textContent = 'No reading yet';
+    if (sub) sub.textContent = "Open the Qur'an and begin";
+  }
+}
+function renderJourney(el) {
+  const log = store.get('noor.activity', {});
+  const today = log[todayKey()] || {};
+  const stats = [
+    { n: today.prayers || 0, label: 'Prayers' },
+    { n: today.adhkar || 0, label: 'Adhkar' },
+    { n: today.habits || 0, label: 'Habits' },
+    { n: today.tasbih || 0, label: 'Dhikr' },
+  ];
+  const host = el.querySelector('#journeyStats');
+  const note = el.querySelector('#journeyNote');
+  if (host) {
+    host.innerHTML = stats.map((s) => `<div class="stat-item"><div class="stat-num">${s.n}</div><div class="stat-label">${s.label}</div></div>`).join('');
+  }
+  const total = stats.reduce((a, s) => a + s.n, 0);
+  if (note) {
+    note.textContent = total === 0
+      ? 'Your day is fresh — begin with a dhikr or a habit. No pressure.'
+      : 'Gentle progress, made with intention. May Allah accept it.';
+  }
 }
 
 /* ---------------- install app ---------------- */
